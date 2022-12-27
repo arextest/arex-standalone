@@ -1,6 +1,6 @@
-package io.arex.standalone.cli.util;
+package io.arex.standalone.common;
 
-public class CmdConstants {
+public class Constants {
     /**
      * command line prompt
      */
@@ -11,5 +11,5 @@ public class CmdConstants {
      */
     public static final String CLI_SEPARATOR = "[arex@]";
 
-    public static final String TYPE_LIST_DIFFMOCKER = "java.util.ArrayList-io.arex.inst.runtime.model.DiffMocker";
+    public static final String TYPE_LIST_DIFFMOCKER = "java.util.ArrayList-io.arex.standalone.common.DiffMocker";
 }

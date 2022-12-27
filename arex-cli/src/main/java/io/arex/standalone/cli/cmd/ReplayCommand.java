@@ -2,12 +2,10 @@ package io.arex.standalone.cli.cmd;
 
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.serializer.JacksonSerializer;
-import io.arex.inst.runtime.model.ArexConstants;
-import io.arex.inst.runtime.model.DiffMocker;
+import io.arex.standalone.common.Constants;
+import io.arex.standalone.common.DiffMocker;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.TypeUtil;
-import io.arex.standalone.cli.util.CmdConstants;
 import io.arex.standalone.cli.util.LogUtil;
 import picocli.CommandLine;
 import picocli.CommandLine.*;
@@ -48,7 +46,7 @@ public class ReplayCommand implements Runnable {
             String result = "@|bold,green no differences|@";
             String[] replayIds = null;
             if (StringUtil.isNotEmpty(response) && response.contains("{")) {
-                List<DiffMocker> diffList = Serializer.deserialize(response, TypeUtil.forName(CmdConstants.TYPE_LIST_DIFFMOCKER));
+                List<DiffMocker> diffList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFFMOCKER));
                 if (CollectionUtil.isNotEmpty(diffList)) {
                     int totalDiffCount = 0;
                     replayIds = new String[diffList.size() + 1];

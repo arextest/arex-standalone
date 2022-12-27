@@ -2,10 +2,10 @@ package io.arex.standalone.cli;
 
 
 import io.arex.foundation.serializer.JacksonSerializer;
-import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.util.LogUtil;
+import io.arex.standalone.common.Constants;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
@@ -79,7 +79,7 @@ public class ArexCli {
                 while (true) {
                     try {
                         systemRegistry.cleanUp();
-                        line = reader.readLine(ArexConstants.CLI_PROMPT, rightPrompt, (MaskingCallback) null, null);
+                        line = reader.readLine(Constants.CLI_PROMPT, rightPrompt, (MaskingCallback) null, null);
                         systemRegistry.execute(line);
                     } catch (UserInterruptException e) {
                         // user interrupt command ignore ignore

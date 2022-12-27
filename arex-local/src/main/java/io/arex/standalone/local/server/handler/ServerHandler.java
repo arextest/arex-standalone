@@ -1,6 +1,6 @@
 package io.arex.standalone.local.server.handler;
 
-import io.arex.inst.runtime.model.ArexConstants;
+import io.arex.standalone.common.Constants;
 import io.termd.core.readline.Function;
 import io.termd.core.readline.Keymap;
 import io.termd.core.readline.Readline;
@@ -27,10 +27,10 @@ public class ServerHandler {
     }
 
     public static void readline(Readline readline, TtyConnection conn) {
-        readline.readline(conn, ArexConstants.CLI_PROMPT, line -> {
+        readline.readline(conn, Constants.CLI_PROMPT, line -> {
             line = StringUtils.defaultString(line);
             if (StringUtils.equalsIgnoreCase(line, "exit")) {
-                conn.write("exit\n" + ArexConstants.CLI_PROMPT).close();
+                conn.write("exit\n" + Constants.CLI_PROMPT).close();
             } else {
                 String response;
                 try {

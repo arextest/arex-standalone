@@ -2,7 +2,7 @@ package io.arex.standalone.local.server.handler;
 
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.inst.runtime.model.DiffMocker;
+import io.arex.standalone.common.DiffMocker;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.local.storage.H2StorageService;
 

@@ -11,6 +11,7 @@
     <modules>
         <module>arex-cli</module>
         <module>arex-local</module>
+        <module>arex-common</module>
     </modules>
 
     <properties>

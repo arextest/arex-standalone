@@ -19,6 +19,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>arex-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.auto.service</groupId>
             <artifactId>auto-service</artifactId>
             <version>${auto-service.version}</version>
@@ -71,6 +76,7 @@
                             <include>io.termd:termd-core</include>
                             <include>io.netty:**</include>
                             <include>com.h2database:h2</include>
+                            <include>io.arex.standalone:**</include>
                         </includes>
                     </artifactSet>
                 </configuration>
