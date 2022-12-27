@@ -26,7 +26,9 @@ mvn install
 
 Put the `arex-local/target/arex-local-<version>.jar` package into the `arex-agent-jar/extensions` directory (create a new folder if there is no extensions).
 
-Remember to add the VM parameter when the local application starts the arex-agent-java: `-Darex.storage.mode=local`
+Remember to add the VM parameter when the local application starts the arex-agent-java: 
+
+`-Darex.storage.mode=local`
 
 
 Simply click the script in the `arex-standalone/bin` directory to start the command line tool, or run it by following `java` command:
