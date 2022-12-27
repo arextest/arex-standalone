@@ -34,16 +34,10 @@ Simply click the script in the `arex-standalone/bin` directory to start the comm
 java -cp "/path/to/arex-cli/target/arex-cli.jar" io.arex.standalone.cli.ArexCli
 ```
 
-
+Dashboard
+![dashboard](arex-cli/src/main/resources/img/cli_welcome.png)
 
 The supported commands are as follows:
-
-
-- **record**- record data or set record rate
-
-  `[option: -r/--rate]` set record rate, default value 1, record once every 60 seconds
-
-  `[option: -c/--close]` shut down record
 
 
 - **replay**- replay recorded data and view differences
