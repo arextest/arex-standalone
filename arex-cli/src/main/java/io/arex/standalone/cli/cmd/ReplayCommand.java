@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 public class ReplayCommand implements Runnable {
     @Option(names = {"-n", "--num"}, description = "replay numbers, default 10", defaultValue = "10")
     int num;
+    @Option(names = {"-r", "--recordId"}, description = "input index or record id, single replay available for local debug")
+    String recordIdOrIndex;
 
     @ParentCommand
     RootCommand parent;
@@ -35,10 +37,29 @@ public class ReplayCommand implements Runnable {
     @Override
     public void run() {
         try {
+            if (StringUtil.isNotEmpty(recordIdOrIndex)) {
+                String recordId = parent.recordIdMap.get(recordIdOrIndex);
+                if (recordId != null) {
+                    recordIdOrIndex = recordId;
+                }
+                // call the debug command
+                CommandLine cmd = spec.parent().subcommands().get("debug");
+                cmd.execute("-r", recordIdOrIndex);
+                return;
+            }
+
             long startNanoTime = System.nanoTime();
             parent.println("start replay...");
-            parent.send(spec.name() + " " + num);
+
+            StringBuilder options = new StringBuilder(" ");
+            options.append("num=").append(num).append(Constants.CLI_SEPARATOR);
+            if (StringUtil.isNotEmpty(parent.currentApi)) {
+                options.append("operation=").append(parent.currentApi).append(Constants.CLI_SEPARATOR);
+            }
+
+            parent.send(spec.name() + options);
             String response = parent.receive(spec.name());
+
             parent.println("replay complete, elapsed mills: "
                     + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanoTime));
             parent.println("start compute difference...");
@@ -60,13 +81,13 @@ public class ReplayCommand implements Runnable {
             }
             parent.println("comparison result: " + Help.Ansi.AUTO.string(result));
 
-            // call the watch command to view the replay results
+            // If there is any differences call the watch command
             if (replayIds != null && replayIds.length > 1) {
                 CommandLine cmd = spec.parent().subcommands().get("watch");
                 cmd.execute(replayIds);
             }
         } catch (Throwable e) {
-            parent.printErr("execute {} fail, visit {} for more details.", spec.name(), LogUtil.getLogDir());
+            parent.printErr("execute command {} fail, visit {} for more details.", spec.name(), LogUtil.getLogDir());
             LogUtil.warn(e);
         }
     }

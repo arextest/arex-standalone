@@ -1,6 +1,5 @@
 package io.arex.standalone.cli.cmd;
 
-
 import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.util.IOUtils;
 import io.arex.standalone.cli.util.LogUtil;
@@ -19,11 +18,9 @@ import picocli.CommandLine.Spec;
 import picocli.shell.jline3.PicocliCommands;
 
 import java.io.*;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Root Command
@@ -31,15 +28,15 @@ import java.util.Map;
  * @Modified By:
  */
 @Command(name = "version 1.0.0", header = {
-        "@|bold,red   ,---. |@@|bold,yellow  ,------.|@@|bold,cyan  ,------.|@@|bold,magenta ,--.   ,--.|@",
-        "@|bold,red  /  O  \\ |@@|bold,yellow |  .--. '|@@|bold,cyan |  .---'|@@|bold,magenta  \\  `.'  / |@",
-        "@|bold,red |  .-.  ||@@|bold,yellow |  '--'.'|@@|bold,cyan |  `--,  |@@|bold,magenta  .'    \\  |@",
-        "@|bold,red |  | |  ||@@|bold,yellow |  |\\  \\|@@|bold,cyan  |  `---.|@@|bold,magenta  /  .'.  \\ |@",
-        "@|bold,red `--' `--'|@@|bold,yellow `--' '--'|@@|bold,cyan `------'|@@|bold,magenta '--'   '--'|@",
+        "@|bold,blue   ,---. |@@|bold,blue  ,------.|@@|bold,blue  ,------.|@@|bold,blue ,--.   ,--.|@",
+        "@|bold,blue  /  O  \\ |@@|bold,blue |  .--. '|@@|bold,blue |  .---'|@@|bold,blue  \\  `.'  / |@",
+        "@|bold,blue |  .-.  ||@@|bold,blue |  '--'.'|@@|bold,blue |  `--,  |@@|bold,blue  .'    \\  |@",
+        "@|bold,blue |  | |  ||@@|bold,blue |  |\\  \\|@@|bold,blue  |  `---.|@@|bold,blue  /  .'.  \\ |@",
+        "@|bold,blue `--' `--'|@@|bold,blue `--' '--'|@@|bold,blue `------'|@@|bold,blue '--'   '--'|@",
         ""},
         description = "Arex Commander",
         footer = {"", "Press Ctrl-D to exit."},
-        subcommands = {ReplayCommand.class, WatchCommand.class, DebugCommand.class,
+        subcommands = {ListCommand.class, ReplayCommand.class, WatchCommand.class, DebugCommand.class,
                 PicocliCommands.ClearScreen.class, HelpCommand.class})
 public class RootCommand implements Runnable {
 
@@ -68,6 +65,15 @@ public class RootCommand implements Runnable {
 
     int terminalWidth = 110;
     int terminalHeight = 50;
+
+    /**
+     * store last operation name of ls command
+     */
+    String currentApi;
+    /**
+     * store last record id of ls command
+     */
+    Map<String, String> recordIdMap = new HashMap<>();
 
     public void setReader(LineReader reader){
         out = reader.getTerminal().writer();
@@ -147,7 +153,7 @@ public class RootCommand implements Runnable {
 
             return attach(selectPid);
         } catch (Throwable e) {
-            printErr("agent fail, visit {} for more details.", LogUtil.getLogDir());
+            printErr("agent fail: {}, visit {} for more details.", e.getMessage(), LogUtil.getLogDir());
             LogUtil.warn(e);
         }
         return false;
@@ -175,12 +181,21 @@ public class RootCommand implements Runnable {
         }
 
         command.add("-jar");
-        command.add(SystemUtils.findModuleJarDir(
-                "arex-attacher" + File.separator + "target", "arex-attacher"));
+        String attachJarPath = SystemUtils.findModuleJarDir("", "arex-attacher");
+        if (StringUtil.isEmpty(attachJarPath)) {
+            printErr("{} jar not exist, please confirm whether it is in the same level directory", "arex-attacher");
+            return false;
+        }
+        command.add(attachJarPath);
         command.add(""+pid);
-        command.add(SystemUtils.findModuleJarDir("arex-agent-jar", "arex-agent"));
+        String agentJarPath = SystemUtils.findModuleJarDir("", "arex-agent");
+        if (StringUtil.isEmpty(agentJarPath)) {
+            printErr("{} jar not exist, please confirm whether it is in the same level directory", "arex-agent-jar");
+            return false;
+        }
+        command.add(agentJarPath);
 
-        command.add("arex.storage.mode=local;arex.server.tcp.port=" + port);
+        command.add("arex.storage.mode=local;arex.enable.debug=true;arex.server.tcp.port=" + port);
 
         ProcessBuilder pb = new ProcessBuilder(command);
         Process proc = pb.start();
@@ -203,6 +218,7 @@ public class RootCommand implements Runnable {
     private boolean connect() {
         try {
             telnet = new TelnetClient();
+            telnet.setCharset(StandardCharsets.UTF_8);
             telnet.setConnectTimeout(5000);
             TelnetOptionHandler sizeOpt = new WindowSizeOptionHandler(
                     getTerminalWidth(), getTerminalHeight(),
@@ -271,13 +287,12 @@ public class RootCommand implements Runnable {
             }
             StringBuilder result = new StringBuilder();
             String[] strings = response.split("\n");
-            // metric
             // response data
             if (strings.length > 1 && strings[0].contains(command)) {
                 for (int i = 1; i < strings.length -1; i++) {
                     result.append(strings[i]);
                 }
-                return result.toString();
+                return URLDecoder.decode(result.toString(), StandardCharsets.UTF_8.name());
             }
         } catch (Throwable e) {
             printErr("receive command fail, please confirm agent and connect success, visit {} for more details.", LogUtil.getLogDir());

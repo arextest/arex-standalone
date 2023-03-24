@@ -17,26 +17,33 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <arex-instrumentation-foundation.version>0.1.0</arex-instrumentation-foundation.version>
-        <slf4j-simple.version>1.7.25</slf4j-simple.version>
+        <arex.version>0.1.0</arex.version>
+        <slf4j.version>1.7.25</slf4j.version>
         <commons-lang3.version>3.7</commons-lang3.version>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.arex</groupId>
-            <artifactId>arex-instrumentation-foundation</artifactId>
-            <version>${arex-instrumentation-foundation.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j-simple.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
-        </dependency>
-    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.arex</groupId>
+                <artifactId>arex-instrumentation-foundation</artifactId>
+                <version>${arex.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

@@ -15,6 +15,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,7 +57,7 @@ public class WatchCommand implements Runnable {
                 }
 
                 String tip = CommandLine.Help.Ansi.AUTO.string(
-                        "input @|blue n|@ show next diff, @|blue p|@ show previous diff, @|magenta q|@ means quit");
+                        "input @|bold,blue n|@ show next diff, @|bold,blue p|@ show previous diff, @|bold,red q|@ means quit");
 
                 Terminal terminal = parent.reader.getTerminal();
                 if (terminal.getWidth() > 0) {
@@ -127,16 +128,15 @@ public class WatchCommand implements Runnable {
                 }
                 parent.println("");
             } catch (Exception e) {
-                parent.printErr("execute {} fail, visit {} for more details.", spec.name(), LogUtil.getLogDir());
+                parent.printErr("execute command {} fail, visit {} for more details.", spec.name(), LogUtil.getLogDir());
                 LogUtil.warn(e);
             }
         } else {
-            parent.println("no exist replay id");
+            parent.println("please input replay id");
         }
     }
 
     private void showDiff(String replayId) {
-        parent.println("\ndifference case: "+replayId);
         if (StringUtil.isEmpty(replayId)) {
             return;
         }
@@ -149,9 +149,21 @@ public class WatchCommand implements Runnable {
         if (CollectionUtil.isEmpty(diffList)) {
             return;
         }
+        String operationName = getOperationBySorted(diffList);
+        parent.println("\noperation: {}, diff replayId: {}", operationName, replayId);
         for (DiffMocker diffMocker : diffList) {
             drawTable(diffMocker.getRecordDiff(), diffMocker.getReplayDiff(), diffMocker.getCategoryType());
         }
+    }
+
+    private String getOperationBySorted(List<DiffMocker> diffList) {
+        DiffMocker mainMocker = diffList.stream().filter(diffMocker -> diffMocker.getCategoryType().isEntryPoint()).findFirst().orElse(null);
+        if (mainMocker != null) {
+            diffList.remove(mainMocker);
+            diffList.add(0, mainMocker);
+            return mainMocker.getOperationName();
+        }
+        return null;
     }
 
     private void drawTable(String diff1, String diff2, MockCategoryType category) {
@@ -188,7 +200,7 @@ public class WatchCommand implements Runnable {
         parent.println(category.getName() +": "+ CommandLine.Help.Ansi.AUTO.string(
                 color + diffNum + "|@") + " differences");
         parent.println(textTable.toString());
-        parent.println("");
+//        parent.println("");
     }
 
     private int getColWidth() {

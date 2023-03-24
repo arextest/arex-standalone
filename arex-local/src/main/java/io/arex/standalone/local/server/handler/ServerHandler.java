@@ -4,11 +4,16 @@ import io.arex.standalone.common.Constants;
 import io.termd.core.readline.Function;
 import io.termd.core.readline.Keymap;
 import io.termd.core.readline.Readline;
+import io.termd.core.telnet.Option;
+import io.termd.core.telnet.TelnetConnection;
 import io.termd.core.tty.TtyConnection;
+import io.termd.core.util.Helper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,11 +51,12 @@ public class ServerHandler {
                     } else {
                         response = apiHandler.process(args);
                     }
+                    response = response == null ? "" : URLEncoder.encode(response, StandardCharsets.UTF_8.name());
                 } catch (Throwable e) {
                     LOGGER.warn("command execute error", e);
                     response = e.getMessage();
                 }
-                conn.write((response == null ? "" : response) + "\n");
+                conn.write(response + "\n");
                 // Read line again
                 readline(readline, conn);
             }
@@ -63,6 +69,7 @@ public class ServerHandler {
         register(new WatchHandler());
         register(new DebugHandler());
         register(new MetricHandler());
+        register(new LSHandler());
     }
 
     private static void register(ApiHandler handler){

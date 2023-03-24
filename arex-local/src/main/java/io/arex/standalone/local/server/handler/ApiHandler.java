@@ -3,7 +3,8 @@ package io.arex.standalone.local.server.handler;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.util.AsyncHttpClientUtil;
-import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.standalone.common.CommonUtils;
+import io.arex.standalone.common.Constants;
 import org.apache.commons.lang3.StringUtils;
 import shaded.apache.http.HttpEntity;
 import shaded.apache.http.HttpHeaders;
@@ -29,17 +30,17 @@ public abstract class ApiHandler {
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
         requestHeaders.put("arex-record-id", servletMocker.getRecordId());
 
-        String request = StringUtils.isNotBlank(target.getBody()) ? target.getBody() : "";
+        String request = StringUtils.isNotBlank(target.getBody()) ? CommonUtils.decode(target.getBody()) : "";
         HttpEntity httpEntity = new ByteArrayEntity(request.getBytes(StandardCharsets.UTF_8));
         String url = "http://" + mockerHeader.get("host") + target.attributeAsString("RequestPath");
         return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, httpEntity, requestHeaders).join();
     }
 
-    public Map<String, String> parseArgs(String argument) {
+    protected Map<String, String> parseArgs(String argument) {
         if (StringUtils.isBlank(argument)) {
             return null;
         }
-        String[] args = argument.trim().split("-");
+        String[] args = StringUtils.splitByWholeSeparator(argument.trim(), Constants.CLI_SEPARATOR);
         Map<String, String> argMap = new LinkedHashMap<>();
         for (String arg : args) {
             if (StringUtils.isBlank(arg)) {
@@ -56,8 +57,16 @@ public abstract class ApiHandler {
     }
 
     private String[] parseOption(String args) {
-        return args.trim().split("=");
+        String str = args.trim();
+        int index = str.indexOf("=", 0);
+        String key = str.substring(0, index);
+        String val = str.substring(index+1);
+        return new String[]{key, val};
     }
 
     public abstract String process(String args) throws Exception;
+
+    protected String getServiceName() {
+        return System.getProperty("arex.service.name");
+    }
 }

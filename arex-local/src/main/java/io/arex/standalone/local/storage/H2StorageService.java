@@ -7,6 +7,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.common.DiffMocker;
+import io.arex.standalone.common.RecordModel;
 import io.arex.standalone.local.util.PropertyUtil;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.Server;
@@ -30,6 +31,49 @@ public class H2StorageService {
     private static final Logger LOGGER = LoggerFactory.getLogger(H2StorageService.class);
     public static final H2StorageService INSTANCE = new H2StorageService();
     private static Statement stmt = null;
+
+    public boolean start() throws Exception {
+        Server webServer = null;
+        Server tcpServer = null;
+        Connection connection = null;
+        try {
+            if (StringUtil.isNotEmpty(PropertyUtil.getProperty("arex.storage.web.port"))) {
+                webServer = Server.createWebServer("-webPort", PropertyUtil.getProperty("arex.storage.web.port"));
+                webServer.start();
+            }
+            if (ConfigManager.INSTANCE.isEnableDebug()) {
+                tcpServer = Server.createTcpServer("-ifNotExists", "-tcpAllowOthers");
+                tcpServer.start();
+            }
+            JdbcConnectionPool cp = JdbcConnectionPool.create(PropertyUtil.getProperty("arex.storage.jdbc.url"),
+                    PropertyUtil.getProperty("arex.storage.username"), PropertyUtil.getProperty("arex.storage.password"));
+            connection = cp.getConnection();
+            stmt = connection.createStatement();
+            Map<String, String> schemaMap = H2SqlParser.parseSchema();
+            for (String schema : schemaMap.values()) {
+                stmt.execute(schema);
+            }
+            return true;
+        } catch (Exception e) {
+            if (webServer != null) {
+                webServer.stop();
+            }
+            if (tcpServer != null) {
+                tcpServer.stop();
+            }
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+            } catch (SQLException ex) {
+            }
+            LOGGER.warn("h2database start error", e);
+        }
+        return false;
+    }
 
     public int save(Mocker mocker, String postJson) {
         String tableName = "MOCKER_INFO";
@@ -110,6 +154,7 @@ public class H2StorageService {
                 diffMocker.setCategoryType(mocker.getCategoryType());
                 diffMocker.setRecordDiff(rs.getString("recordDiff"));
                 diffMocker.setReplayDiff(rs.getString("replayDiff"));
+                diffMocker.setOperationName(rs.getString("operationName"));
                 result.add(diffMocker);
             }
         } catch (Throwable e) {
@@ -118,46 +163,56 @@ public class H2StorageService {
         return result;
     }
 
-    public boolean start() throws Exception {
-        Server webServer = null;
-        Server tcpServer = null;
-        Connection connection = null;
+    public List<RecordModel> queryRecordCount(Mocker mocker, int count) {
+        List<RecordModel> result = new ArrayList<>();
         try {
-            if (StringUtil.isNotEmpty(PropertyUtil.getProperty("arex.storage.web.port"))) {
-                webServer = Server.createWebServer("-webPort", PropertyUtil.getProperty("arex.storage.web.port"));
-                webServer.start();
+            String sql = H2SqlParser.queryApiRecordCount(mocker, count);
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                RecordModel recordModel = new RecordModel();
+                recordModel.setIndex(rs.getString("index"));
+                recordModel.setOperationName(rs.getString("operationName"));
+                recordModel.setCaseNum(rs.getString("num"));
+                result.add(recordModel);
             }
-            if (ConfigManager.INSTANCE.isEnableDebug()) {
-                tcpServer = Server.createTcpServer("-ifNotExists", "-tcpAllowOthers");
-                tcpServer.start();
-            }
-            JdbcConnectionPool cp = JdbcConnectionPool.create(PropertyUtil.getProperty("arex.storage.jdbc.url"),
-                    PropertyUtil.getProperty("arex.storage.username"), PropertyUtil.getProperty("arex.storage.password"));
-            connection = cp.getConnection();
-            stmt = connection.createStatement();
-            Map<String, String> schemaMap = H2SqlParser.parseSchema();
-            for (String schema : schemaMap.values()) {
-                stmt.execute(schema);
-            }
-            return true;
-        } catch (Exception e) {
-            if (webServer != null) {
-                webServer.stop();
-            }
-            if (tcpServer != null) {
-                tcpServer.stop();
-            }
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-                if (stmt != null) {
-                    stmt.close();
-                }
-            } catch (SQLException ex) {
-            }
-            LOGGER.warn("h2database start error", e);
+        } catch (Throwable e) {
+            LOGGER.warn("h2database query record case error", e);
         }
-        return false;
+        return result;
+    }
+
+    public List<RecordModel> queryApiRecordId(Mocker mocker, int count) {
+        List<RecordModel> result = new ArrayList<>();
+        try {
+            String sql = H2SqlParser.queryApiRecordId(mocker, count);
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                RecordModel recordModel = new RecordModel();
+                recordModel.setRecordId(rs.getString("recordId"));
+                recordModel.setMockCategoryType(rs.getString("mockCategory"));
+                recordModel.setIndex(rs.getString("index"));
+                result.add(recordModel);
+            }
+        } catch (Throwable e) {
+            LOGGER.warn("h2database query record id error", e);
+        }
+        return result;
+    }
+
+    public List<RecordModel> queryJsonList(Mocker mocker, int count) {
+        List<RecordModel> result = new ArrayList<>();
+        try {
+            String sql = H2SqlParser.generateSelectSql(mocker, count);
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                String jsonData = URLDecoder.decode(rs.getString("jsonData"), StandardCharsets.UTF_8.name());
+                RecordModel recordModel = new RecordModel();
+                recordModel.setMessage(jsonData);
+                result.add(recordModel);
+            }
+        } catch (Throwable e) {
+            LOGGER.warn("h2database query json list error", e);
+        }
+        return result;
     }
 }

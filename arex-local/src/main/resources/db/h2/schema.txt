@@ -6,7 +6,9 @@ replayId VARCHAR(100) NOT NULL,
 categoryType VARCHAR(50),
 appId VARCHAR(100),
 jsonData VARCHAR,
-creationTime long
+creationTime long,
+operationName VARCHAR(100),
+request VARCHAR
 );
 CREATE INDEX idx_recordId ON MOCKER_INFO (recordId);
 CREATE INDEX idx_replayId ON MOCKER_INFO (replayId);
@@ -18,6 +20,7 @@ recordId VARCHAR(100),
 replayId VARCHAR(100) NOT NULL,
 categoryType VARCHAR(50),
 recordDiff VARCHAR,
-replayDiff VARCHAR
+replayDiff VARCHAR,
+operationName VARCHAR(100)
 );
 CREATE INDEX idx_replayId ON DIFF_RESULT (replayId);

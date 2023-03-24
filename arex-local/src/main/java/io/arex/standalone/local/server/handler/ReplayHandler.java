@@ -6,7 +6,9 @@ import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.CollectionUtil;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.standalone.common.CommonUtils;
 import io.arex.standalone.common.DiffMocker;
 import io.arex.standalone.local.util.DiffUtils;
 import io.arex.standalone.local.util.JsonUtil;
@@ -20,8 +22,12 @@ public class ReplayHandler extends ApiHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayHandler.class);
 
     @Override
-    public String process(String args) throws Exception {
-        List<Pair<String, String>> idPairs = replay(Integer.parseInt(args));
+    public String process(String args) {
+        Map<String, String> argMap = parseArgs(args);
+        int num = Integer.parseInt(argMap.get("num"));
+        String operation = argMap.get("operation");
+
+        List<Pair<String, String>> idPairs = replay(num, operation);
         if (CollectionUtil.isEmpty(idPairs)) {
             LOGGER.warn("replay no result");
             return null;
@@ -33,8 +39,11 @@ public class ReplayHandler extends ApiHandler {
         return Serializer.serialize(diffList);
     }
 
-    private List<Pair<String, String>> replay(int num) {
-        Mocker mocker = new ArexMocker(MockCategoryType.SERVLET);
+    private List<Pair<String, String>> replay(int num, String operation) {
+        ArexMocker mocker = new ArexMocker(MockCategoryType.SERVLET);
+        if (StringUtil.isNotEmpty(operation)) {
+            mocker.setOperationName(operation);
+        }
         List<Mocker> mockerList = H2StorageService.INSTANCE.queryList(mocker, num);
         if (CollectionUtil.isEmpty(mockerList)) {
             LOGGER.warn("query no result.");
@@ -69,6 +78,7 @@ public class ReplayHandler extends ApiHandler {
                     continue;
                 }
                 int len = Math.max(recordList.size(), replayList.size());
+                String operationName = getOperationName(recordList, replayList);
                 for (int i = 0; i < len; i++) {
                     recordJson = getCompareJson(recordList, i, category);
                     replayJson = getCompareJson(replayList, i, category);
@@ -77,7 +87,7 @@ public class ReplayHandler extends ApiHandler {
                     }
                     Pair<String, String> dbDiffPair = dmp.diff(JsonUtil.formatJson(recordJson), JsonUtil.formatJson(replayJson));
                     diffCount += dmp.diffCount(dbDiffPair);
-                    diffDetailList.add(getDiffMocker(idPair, dbDiffPair, category));
+                    diffDetailList.add(getDiffMocker(idPair, dbDiffPair, category, operationName));
                 }
                 if (diffCount > 0) {
                     hasDiff = true;
@@ -94,6 +104,16 @@ public class ReplayHandler extends ApiHandler {
         }
 
         return diffSummaryList;
+    }
+
+    private String getOperationName(List<Mocker> recordList, List<Mocker> replayList) {
+        if (CollectionUtil.isNotEmpty(recordList)) {
+            return recordList.get(0).getOperationName();
+        }
+        if (CollectionUtil.isNotEmpty(replayList)) {
+            return replayList.get(0).getOperationName();
+        }
+        return "";
     }
 
     private Mocker generateMocker(MockCategoryType category) {
@@ -115,7 +135,7 @@ public class ReplayHandler extends ApiHandler {
             }
             if (category == MockCategoryType.HTTP_CLIENT) {
                 compareMap.put("operation", mocker.getOperationName());
-                compareMap.put("request", decode(targetRequest.getBody()));
+                compareMap.put("request", CommonUtils.decode(targetRequest.getBody()));
             }
             if (category == MockCategoryType.REDIS) {
                 compareMap.put("clusterName", targetRequest.attributeAsString("clusterName"));
@@ -129,20 +149,13 @@ public class ReplayHandler extends ApiHandler {
         return compareMap.values().stream().filter(Objects::nonNull).findFirst().orElse(null);
     }
 
-    private DiffMocker getDiffMocker(Pair<String, String> idPair, Pair<String, String> diffPair, MockCategoryType category) {
+    private DiffMocker getDiffMocker(Pair<String, String> idPair, Pair<String, String> diffPair, MockCategoryType category, String operationName) {
         DiffMocker diffMocker = new DiffMocker(category);
         diffMocker.setRecordId(idPair.getFirst());
         diffMocker.setReplayId(idPair.getSecond());
         diffMocker.setRecordDiff(diffPair.getFirst());
         diffMocker.setReplayDiff(diffPair.getSecond());
+        diffMocker.setOperationName(operationName);
         return diffMocker;
-    }
-
-    private String decode(String str) {
-        try {
-            return new String(Base64.getDecoder().decode(str));
-        } catch (Exception e) {
-            return str;
-        }
     }
 }

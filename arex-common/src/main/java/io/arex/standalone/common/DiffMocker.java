@@ -9,7 +9,7 @@ public class DiffMocker {
     private String replayDiff;
     private MockCategoryType categoryType;
     private int diffCount;
-
+    private String operationName;
     public DiffMocker() {
     }
 
@@ -63,5 +63,13 @@ public class DiffMocker {
 
     public void setDiffCount(int diffCount) {
         this.diffCount = diffCount;
+    }
+
+    public String getOperationName() {
+        return operationName;
+    }
+
+    public void setOperationName(String operationName) {
+        this.operationName = operationName;
     }
 }

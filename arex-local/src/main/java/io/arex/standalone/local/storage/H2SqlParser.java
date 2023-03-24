@@ -66,14 +66,17 @@ public class H2SqlParser {
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getCategoryType().getName())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getAppId())).append("',");
                     sqlBuilder.append("'").append(jsonData == null ? "" : URLEncoder.encode(jsonData, StandardCharsets.UTF_8.name())).append("',");
-                    sqlBuilder.append(mocker.getCreationTime());
+                    sqlBuilder.append(mocker.getCreationTime()).append(",");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getOperationName())).append("',");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getTargetRequest().getBody())).append("'");
                 } else if (entity instanceof DiffMocker) {
                     DiffMocker mocker = (DiffMocker)entity;
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getRecordId())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayId())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getCategoryType().getName())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getRecordDiff())).append("',");
-                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayDiff())).append("'");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayDiff())).append("',");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getOperationName())).append("'");
                 }
                 sqlBuilder.append("),");
             }
@@ -94,7 +97,15 @@ public class H2SqlParser {
         } else {
             sqlBuilder.append(" AND REPLAYID = ''");
         }
-        sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
+        if (mocker.getCategoryType() != null) {
+            sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
+        }
+        if (StringUtils.isNotBlank(mocker.getOperationName())) {
+            sqlBuilder.append(" AND OPERATIONNAME = '").append(mocker.getOperationName()).append("'");
+        }
+        if (mocker.getTargetRequest() != null && StringUtils.isNotBlank(mocker.getTargetRequest().getBody())) {
+            sqlBuilder.append(" AND REQUEST = '").append(mocker.getTargetRequest().getBody()).append("'");
+        }
         sqlBuilder.append(" ORDER BY CREATIONTIME DESC");
         if (count > 0) {
             sqlBuilder.append(" LIMIT ").append(count);
@@ -110,6 +121,41 @@ public class H2SqlParser {
         }
         if (StringUtils.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
+        }
+        return sqlBuilder.toString();
+    }
+
+    public static String queryApiRecordCount(Mocker mocker, int count) {
+        StringBuilder sqlBuilder = new StringBuilder("select rownum() as index, * from (");
+        sqlBuilder.append(" SELECT OPERATIONNAME, count(1) as NUM FROM MOCKER_INFO WHERE REPLAYID = ''");
+        if (StringUtils.isNotBlank(mocker.getAppId())) {
+            sqlBuilder.append(" AND APPID = '").append(mocker.getAppId()).append("'");
+        }
+        sqlBuilder.append(" AND CATEGORYTYPE = 'Servlet'");
+        sqlBuilder.append(" GROUP BY OPERATIONNAME");
+        sqlBuilder.append(" ORDER BY NUM DESC )");
+        if (count > 0) {
+            sqlBuilder.append(" LIMIT ").append(count);
+        }
+        return sqlBuilder.toString();
+    }
+
+    public static String queryApiRecordId(Mocker mocker, int count) {
+        StringBuilder sqlBuilder = new StringBuilder("select rownum() as index, * from (");
+        sqlBuilder.append(" select recordId, group_concat(distinct categoryType) as mockCategory ");
+        sqlBuilder.append(" from mocker_info where replayId = '' and recordId in (");
+        sqlBuilder.append(" select recordId from mocker_info where replayId = ''");
+        if (StringUtils.isNotBlank(mocker.getAppId())) {
+            sqlBuilder.append(" AND appId = '").append(mocker.getAppId()).append("'");
+        }
+        sqlBuilder.append(" and categoryType = 'Servlet' ");
+        if (StringUtils.isNotBlank(mocker.getOperationName())) {
+            sqlBuilder.append(" AND operationName = '").append(mocker.getOperationName()).append("'");
+        }
+        sqlBuilder.append(" ) and operationName != 'java.lang.System.currentTimeMillis'");
+        sqlBuilder.append(" group by recordId order by recordId desc)");
+        if (count > 0) {
+            sqlBuilder.append(" limit ").append(count);
         }
         return sqlBuilder.toString();
     }

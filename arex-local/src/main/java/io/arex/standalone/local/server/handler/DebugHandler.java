@@ -11,7 +11,7 @@ public class DebugHandler extends ApiHandler {
     @Override
     public String process(String args) throws Exception {
         Mocker mocker = new ArexMocker(MockCategoryType.SERVLET);
-        mocker.setReplayId(args);
+        mocker.setRecordId(args);
         Mocker resultMocker = H2StorageService.INSTANCE.query(mocker);
         if (resultMocker == null) {
             return "query no result.";

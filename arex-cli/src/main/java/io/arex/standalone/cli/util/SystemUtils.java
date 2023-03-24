@@ -168,7 +168,7 @@ public class SystemUtils {
         if (codeSource != null) {
             try {
                 File jarPath = new File(codeSource.getLocation().toURI().getSchemeSpecificPart());
-                return jarPath.getParentFile().getParentFile().getParentFile().getParentFile().getAbsolutePath();
+                return jarPath.getParentFile().getAbsolutePath();
             } catch (Throwable e) {
                 // ignore
             }
