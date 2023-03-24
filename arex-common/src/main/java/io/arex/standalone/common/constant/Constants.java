@@ -1,4 +1,4 @@
-package io.arex.standalone.common;
+package io.arex.standalone.common.constant;
 
 public class Constants {
     /**
@@ -11,7 +11,7 @@ public class Constants {
      */
     public static final String CLI_SEPARATOR = "[arex@]";
 
-    public static final String TYPE_LIST_DIFFMOCKER = "java.util.ArrayList-io.arex.standalone.common.DiffMocker";
-    public static final String TYPE_LIST_RECORD = "java.util.ArrayList-io.arex.standalone.common.RecordModel";
+    public static final String TYPE_LIST_DIFF = "java.util.ArrayList-io.arex.standalone.common.model.DiffModel";
+    public static final String TYPE_LIST_RECORD = "java.util.ArrayList-io.arex.standalone.common.model.RecordModel";
     public static final String COLUMN_SEPARATOR = "|";
 }

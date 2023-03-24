@@ -1,8 +1,6 @@
-package io.arex.standalone.common;
+package io.arex.standalone.common.model;
 
-import io.arex.agent.bootstrap.model.MockCategoryType;
-
-public class DiffMocker {
+public class DiffModel {
     private String recordId;
     private String replayId;
     private String recordDiff;
@@ -10,10 +8,10 @@ public class DiffMocker {
     private MockCategoryType categoryType;
     private int diffCount;
     private String operationName;
-    public DiffMocker() {
+    public DiffModel() {
     }
 
-    public DiffMocker(MockCategoryType category) {
+    public DiffModel(MockCategoryType category) {
         this.categoryType = category;
     }
 

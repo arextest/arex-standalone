@@ -1,13 +1,10 @@
 package io.arex.standalone.local.server.handler;
 
-import io.arex.standalone.common.Constants;
+import io.arex.standalone.common.constant.Constants;
 import io.termd.core.readline.Function;
 import io.termd.core.readline.Keymap;
 import io.termd.core.readline.Readline;
-import io.termd.core.telnet.Option;
-import io.termd.core.telnet.TelnetConnection;
 import io.termd.core.tty.TtyConnection;
-import io.termd.core.util.Helper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

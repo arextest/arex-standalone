@@ -1,10 +1,10 @@
 package io.arex.standalone.cli.cmd;
 
-import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.util.IOUtils;
+import io.arex.standalone.common.util.StringUtil;
+import io.arex.standalone.common.util.IOUtils;
 import io.arex.standalone.cli.util.LogUtil;
 import io.arex.standalone.cli.util.SystemUtils;
-import io.arex.standalone.common.Constants;
+import io.arex.standalone.common.constant.Constants;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.apache.commons.net.telnet.TelnetOptionHandler;

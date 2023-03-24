@@ -1,6 +1,6 @@
 package io.arex.standalone.cli.cmd;
 
-import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.standalone.common.util.StringUtil;
 import io.arex.standalone.cli.util.JsonUtil;
 import io.arex.standalone.cli.util.LogUtil;
 import picocli.CommandLine;

@@ -1,17 +1,17 @@
 package io.arex.standalone.cli.cmd;
 
-import io.arex.agent.bootstrap.model.ArexMocker;
-import io.arex.agent.bootstrap.model.MockCategoryType;
-import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.util.TypeUtil;
+import io.arex.standalone.common.model.ArexMocker;
+import io.arex.standalone.common.model.MockCategoryType;
+import io.arex.standalone.common.model.Mocker;
+import io.arex.standalone.common.util.CollectionUtil;
+import io.arex.standalone.common.util.StringUtil;
+import io.arex.standalone.common.serializer.Serializer;
+import io.arex.standalone.common.util.TypeUtil;
 import io.arex.standalone.cli.util.JsonUtil;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.common.CommonUtils;
-import io.arex.standalone.common.Constants;
-import io.arex.standalone.common.RecordModel;
+import io.arex.standalone.common.util.CommonUtils;
+import io.arex.standalone.common.constant.Constants;
+import io.arex.standalone.common.model.RecordModel;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

@@ -1,12 +1,12 @@
 package io.arex.standalone.cli.cmd;
 
-import io.arex.agent.bootstrap.model.MockCategoryType;
-import io.arex.agent.bootstrap.util.CollectionUtil;
-import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.standalone.common.DiffMocker;
-import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.inst.runtime.util.TypeUtil;
-import io.arex.standalone.common.Constants;
+import io.arex.standalone.common.model.MockCategoryType;
+import io.arex.standalone.common.util.CollectionUtil;
+import io.arex.standalone.common.util.StringUtil;
+import io.arex.standalone.common.model.DiffModel;
+import io.arex.standalone.common.serializer.Serializer;
+import io.arex.standalone.common.util.TypeUtil;
+import io.arex.standalone.common.constant.Constants;
 import io.arex.standalone.cli.util.JsonUtil;
 import io.arex.standalone.cli.util.LogUtil;
 import org.jline.terminal.Terminal;
@@ -15,7 +15,6 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -145,19 +144,19 @@ public class WatchCommand implements Runnable {
         if (StringUtil.isEmpty(response) || !response.contains("{")) {
             return;
         }
-        List<DiffMocker> diffList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFFMOCKER));
+        List<DiffModel> diffList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFF));
         if (CollectionUtil.isEmpty(diffList)) {
             return;
         }
         String operationName = getOperationBySorted(diffList);
         parent.println("\noperation: {}, diff replayId: {}", operationName, replayId);
-        for (DiffMocker diffMocker : diffList) {
+        for (DiffModel diffMocker : diffList) {
             drawTable(diffMocker.getRecordDiff(), diffMocker.getReplayDiff(), diffMocker.getCategoryType());
         }
     }
 
-    private String getOperationBySorted(List<DiffMocker> diffList) {
-        DiffMocker mainMocker = diffList.stream().filter(diffMocker -> diffMocker.getCategoryType().isEntryPoint()).findFirst().orElse(null);
+    private String getOperationBySorted(List<DiffModel> diffList) {
+        DiffModel mainMocker = diffList.stream().filter(diffMocker -> diffMocker.getCategoryType().isEntryPoint()).findFirst().orElse(null);
         if (mainMocker != null) {
             diffList.remove(mainMocker);
             diffList.add(0, mainMocker);

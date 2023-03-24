@@ -1,4 +1,4 @@
-package io.arex.standalone.common;
+package io.arex.standalone.common.util;
 
 import java.util.Base64;
 

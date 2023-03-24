@@ -1,11 +1,11 @@
 package io.arex.standalone.cli;
 
 
-import io.arex.foundation.serializer.JacksonSerializer;
-import io.arex.inst.runtime.serializer.Serializer;
+import io.arex.standalone.common.serializer.JacksonSerializer;
+import io.arex.standalone.common.serializer.Serializer;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.common.Constants;
+import io.arex.standalone.common.constant.Constants;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;

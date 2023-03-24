@@ -1,4 +1,4 @@
-package io.arex.standalone.common;
+package io.arex.standalone.common.model;
 
 public class RecordModel {
     private String recordId;
