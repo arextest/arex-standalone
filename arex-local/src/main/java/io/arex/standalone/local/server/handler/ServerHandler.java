@@ -32,7 +32,7 @@ public class ServerHandler {
         readline.readline(conn, Constants.CLI_PROMPT, line -> {
             line = StringUtils.defaultString(line);
             if (StringUtils.equalsIgnoreCase(line, "exit")) {
-                conn.write("exit\n" + Constants.CLI_PROMPT).close();
+                conn.write("exit\n").close();
             } else {
                 String response;
                 try {

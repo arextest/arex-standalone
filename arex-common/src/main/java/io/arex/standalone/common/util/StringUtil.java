@@ -2,6 +2,7 @@ package io.arex.standalone.common.util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
 
 public class StringUtil {
     public static final String EMPTY = "";
@@ -353,5 +354,21 @@ public class StringUtil {
                 return false;
             }
         }
+    }
+
+    public static String format(String from, Object... arguments) {
+        if (StringUtil.isEmpty(from)) {
+            return EMPTY;
+        }
+        String computed = from;
+        if (arguments != null && arguments.length != 0) {
+            for (Object argument : arguments) {
+                if (argument == null) {
+                    continue;
+                }
+                computed = computed.replaceFirst("\\{\\}", Matcher.quoteReplacement(argument.toString()));
+            }
+        }
+        return computed;
     }
 }

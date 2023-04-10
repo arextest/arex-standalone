@@ -73,7 +73,7 @@ public class H2SqlParser {
                     DiffMocker mocker = (DiffMocker)entity;
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getRecordId())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayId())).append("',");
-                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getCategoryType().getName())).append("',");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getCategoryType())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getRecordDiff())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayDiff())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getOperationName())).append("'");
@@ -113,14 +113,19 @@ public class H2SqlParser {
         return sqlBuilder.toString();
     }
 
-    public static String generateSelectDiffSql(DiffMocker mocker) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM DIFF_RESULT ");
-        sqlBuilder.append(" WHERE CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
+    public static String generateSelectDiffSql(DiffMocker mocker, int count) {
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM DIFF_RESULT WHERE 1 = 1");
+        if (mocker.getCategoryType() != null) {
+            sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType()).append("'");
+        }
         if (StringUtils.isNotBlank(mocker.getRecordId())) {
             sqlBuilder.append(" AND RECORDID = '").append(mocker.getRecordId()).append("'");
         }
         if (StringUtils.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
+        }
+        if (count > 0) {
+            sqlBuilder.append(" LIMIT ").append(count);
         }
         return sqlBuilder.toString();
     }

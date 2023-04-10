@@ -57,19 +57,7 @@ public class LogUtil {
     }
 
     public static String format(String from, Object... arguments) {
-        if (StringUtil.isEmpty(from)) {
-            return null;
-        }
-        String computed = from;
-        if (arguments != null && arguments.length != 0) {
-            for (Object argument : arguments) {
-                if (argument == null) {
-                    continue;
-                }
-                computed = computed.replaceFirst("\\{\\}", Matcher.quoteReplacement(argument.toString()));
-            }
-        }
-        return computed;
+        return StringUtil.format(from, arguments);
     }
 
     private static String getStackTrace(Throwable throwable) {

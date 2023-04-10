@@ -1,23 +1,16 @@
 package io.arex.standalone.cli.cmd;
 
-import io.arex.standalone.common.model.ArexMocker;
-import io.arex.standalone.common.model.MockCategoryType;
-import io.arex.standalone.common.model.Mocker;
-import io.arex.standalone.common.util.CollectionUtil;
-import io.arex.standalone.common.util.StringUtil;
+import io.arex.standalone.common.util.*;
 import io.arex.standalone.common.serializer.Serializer;
-import io.arex.standalone.common.util.TypeUtil;
-import io.arex.standalone.cli.util.JsonUtil;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.common.util.CommonUtils;
 import io.arex.standalone.common.constant.Constants;
-import io.arex.standalone.common.model.RecordModel;
+import io.arex.standalone.common.model.LocalModel;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.List;
 
 /**
  * List Command
@@ -27,32 +20,24 @@ import java.util.*;
         description = "list record cases",
         mixinStandardHelpOptions = true, sortOptions = false)
 public class ListCommand implements Runnable {
-
     @Option(names = {"-o", "--operation"}, description = "input index or recorded operation name")
     String operation;
-
-    @Option(names = {"-d", "--detail"}, description = "input index or recorded id")
-    String detail;
-
     @Option(names = {"-n", "--num"}, description = "list numbers, default 10", defaultValue = "10")
     int num;
-
     @CommandLine.ParentCommand
     RootCommand parent;
-
     @CommandLine.Spec
     CommandLine.Model.CommandSpec spec;
 
     int colWidth = 0;
-    static final String COLUMN_OPERATION = "[index]operation name:";
+    static final String COLUMN_OPERATION = "[index] operation name:";
     static final String COLUMN_CASE_NUM = "case num:";
-    static final String COLUMN_RECORD_ID = "[index]record id:";
-    static final String COLUMN_CATEGORY = "mock category:";
     Map<String, String> operationMap = new HashMap<>();
 
     @Override
     public void run() {
         try {
+            RootCommand.updateCmd(spec.name());
             StringBuilder options = new StringBuilder(" ");
             options.append("num=").append(num).append(Constants.CLI_SEPARATOR);
             if (StringUtil.isNotEmpty(operation)) {
@@ -62,18 +47,9 @@ public class ListCommand implements Runnable {
                      operation = operationName;
                 }
                 options.append("operation=").append(operation).append(Constants.CLI_SEPARATOR);
-            } else if (StringUtil.isNotEmpty(detail)) {
-                if (parent.recordIdMap.isEmpty()) {
-                    parent.printErr("please execute command: ls -o first");
-                    return;
-                }
-                // support input index or recordId
-                String recordId = parent.recordIdMap.get(detail);
-                if (recordId != null) {
-                    detail = recordId;
-                }
-                options.append("detail=").append(detail).append(Constants.CLI_SEPARATOR);
+                RootCommand.updateApi(operation);
             }
+
             parent.send(spec.name() + options);
             String response = parent.receive(spec.name());
             process(response);
@@ -88,7 +64,14 @@ public class ListCommand implements Runnable {
             parent.printErr("query result invalid:{}", response);
             return;
         }
-        List<RecordModel> resultList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_RECORD));
+        RootCommand.save(spec.name(), response);
+        if (StringUtil.isNotEmpty(operation)) {
+            parent.println("record result has been displayed in the browser");
+            parent.openBrowser();
+            return;
+        }
+
+        List<LocalModel> resultList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_LOCAL));
         if (CollectionUtil.isEmpty(resultList)) {
             return;
         }
@@ -96,7 +79,7 @@ public class ListCommand implements Runnable {
         display(resultList);
     }
 
-    private void display(List<RecordModel> recordList) {
+    private void display(List<LocalModel> recordList) {
         List<CommandLine.Help.Column> colHeaders = new ArrayList<>();
         List<String> colNames = new ArrayList<>();
         List<List<String>> rowList = new ArrayList<>();
@@ -104,105 +87,28 @@ public class ListCommand implements Runnable {
         int colNum;
         for (int i = 0; i < size; i++) {
             List<String> colList = new ArrayList<>();
-            if (StringUtil.isNotEmpty(operation)) {
-                // | [index]recordId | mockCategory |
-                colNum = 2;
-                setColWidth(colNum);
-                // 1st row
-                if (i == 0) {
-                    colHeaders = columnHeader(colNum);
+            // | [index]operation | case num |
+            colNum = 2;
+            setColWidth(colNum);
+            // 1st row
+            if (i == 0) {
+                colHeaders = columnHeader(colNum);
 
-                    colNames.add(COLUMN_RECORD_ID + getSpace(COLUMN_RECORD_ID));
-                    colNames.add(Constants.COLUMN_SEPARATOR);
-                    colNames.add(COLUMN_CATEGORY + getSpace(COLUMN_CATEGORY));
-                    parent.recordIdMap.clear();
-                    parent.currentApi = operation;
-                }
-                String recordId = String.format("[%s]%s", recordList.get(i).getIndex(), recordList.get(i).getRecordId());
-                colList.add(JsonUtil.breakLine(recordId, colWidth));
-                colList.add(Constants.COLUMN_SEPARATOR);
-                colList.add(JsonUtil.breakLine(recordList.get(i).getMockCategoryType(), colWidth));
-
-                parent.recordIdMap.put(recordList.get(i).getIndex(), recordList.get(i).getRecordId());
-                rowList.add(colList);
-            } else if (StringUtil.isNotEmpty(detail)) {
-                // | message |
-                colNum = 1;
-                setColWidth(colNum);
-                // 1st row
-                if (i == 0) {
-                    colHeaders = columnHeader(colNum);
-                }
-                Mocker mocker = Serializer.deserialize(recordList.get(i).getMessage(), ArexMocker.class);
-                if (mocker != null) {
-                    String json = getRecordJson(mocker);
-                    if (StringUtil.isNotEmpty(json)) {
-                        String category = CommandLine.Help.Ansi.AUTO.string("@|bold,green "
-                                + mocker.getCategoryType().getName() + ":|@");
-                        rowList.add(Collections.singletonList(category));
-                        colList.add(new String(json.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
-                        rowList.add(colList);
-                    }
-                }
-            } else {
-                // | [index]operation | case num |
-                colNum = 2;
-                setColWidth(colNum);
-                // 1st row
-                if (i == 0) {
-                    colHeaders = columnHeader(colNum);
-
-                    colNames.add(COLUMN_OPERATION + getSpace(COLUMN_OPERATION));
-                    colNames.add(Constants.COLUMN_SEPARATOR);
-                    colNames.add(COLUMN_CASE_NUM + getSpace(COLUMN_CASE_NUM));
-                    operationMap.clear();
-                    parent.currentApi = null;
-                }
-                String operationName = String.format("[%s]%s", recordList.get(i).getIndex(), recordList.get(i).getOperationName());
-                colList.add(JsonUtil.breakLine(operationName, colWidth));
-                colList.add(Constants.COLUMN_SEPARATOR);
-                colList.add(JsonUtil.breakLine(recordList.get(i).getCaseNum(), colWidth));
-
-                operationMap.put(recordList.get(i).getIndex(), recordList.get(i).getOperationName());
-                rowList.add(colList);
+                colNames.add(COLUMN_OPERATION + getSpace(COLUMN_OPERATION));
+                colNames.add(Constants.COLUMN_SEPARATOR);
+                colNames.add(COLUMN_CASE_NUM + getSpace(COLUMN_CASE_NUM));
+                operationMap.clear();
+                RootCommand.updateApi("");
             }
-        }
-        if (StringUtil.isNotEmpty(operation)) {
-            parent.println(operation);
+            String operationName = String.format("[%s] %s", recordList.get(i).getIndex(), recordList.get(i).getOperationName());
+            colList.add(JsonUtil.breakLine(operationName, colWidth));
+            colList.add(Constants.COLUMN_SEPARATOR);
+            colList.add(JsonUtil.breakLine(recordList.get(i).getCaseNum(), colWidth));
+
+            operationMap.put(recordList.get(i).getIndex(), recordList.get(i).getOperationName());
+            rowList.add(colList);
         }
         drawTable(colHeaders, colNames, rowList);
-    }
-
-    private String getRecordJson(Mocker mocker) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        Mocker.Target targetRequest = mocker.getTargetRequest();
-        MockCategoryType category = mocker.getCategoryType();
-        if (MockCategoryType.DYNAMIC_CLASS.getName().equals(category.getName())) {
-            return null;
-        }
-        String response = mocker.getTargetResponse().getBody();
-        if (category.isEntryPoint()) {
-            builder.append("operation: ").append(mocker.getOperationName()).append(",");
-            builder.append("request: ").append(JsonUtil.cleanFormat(CommonUtils.decode(targetRequest.getBody()))).append(",");
-            builder.append("response: ").append(response);
-        }
-        if (MockCategoryType.DATABASE.getName().equals(category.getName())) {
-//            compareMap.put("dbname", targetRequest.attributeAsString("dbName"));
-            builder.append("sql: ").append("\"").append(targetRequest.getBody()).append("\"").append(",");
-            builder.append("result: ").append(response);
-        }
-        if (MockCategoryType.HTTP_CLIENT.getName().equals(category.getName())) {
-            builder.append("operation: ").append(mocker.getOperationName()).append(",");
-            builder.append("request: ").append(CommonUtils.decode(targetRequest.getBody()));
-        }
-        if (MockCategoryType.REDIS.getName().equals(category.getName())) {
-            builder.append("clusterName: ").append(targetRequest.attributeAsString("clusterName")).append(",");
-            builder.append("key: ").append(targetRequest.getBody()).append(",");
-            builder.append("result: ").append(response);
-        }
-        builder.append("}");
-        return JsonUtil.formatJson(builder.toString());
     }
 
     private List<CommandLine.Help.Column> columnHeader(int size) {

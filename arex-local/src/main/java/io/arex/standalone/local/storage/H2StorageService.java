@@ -7,7 +7,7 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.local.model.DiffMocker;
-import io.arex.standalone.common.model.RecordModel;
+import io.arex.standalone.common.model.LocalModel;
 import io.arex.standalone.local.util.PropertyUtil;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.tools.Server;
@@ -142,16 +142,16 @@ public class H2StorageService {
         return result;
     }
 
-    public List<DiffMocker> queryList(DiffMocker mocker) {
+    public List<DiffMocker> queryList(DiffMocker mocker, int count) {
         List<DiffMocker> result = new ArrayList<>();
         try {
-            String sql = H2SqlParser.generateSelectDiffSql(mocker);
+            String sql = H2SqlParser.generateSelectDiffSql(mocker, count);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 DiffMocker diffMocker = new DiffMocker();
                 diffMocker.setReplayId(rs.getString("replayId"));
                 diffMocker.setRecordId(rs.getString("recordId"));
-                diffMocker.setCategoryType(mocker.getCategoryType());
+                diffMocker.setCategoryType(rs.getString("categoryType"));
                 diffMocker.setRecordDiff(rs.getString("recordDiff"));
                 diffMocker.setReplayDiff(rs.getString("replayDiff"));
                 diffMocker.setOperationName(rs.getString("operationName"));
@@ -163,17 +163,17 @@ public class H2StorageService {
         return result;
     }
 
-    public List<RecordModel> queryRecordCount(Mocker mocker, int count) {
-        List<RecordModel> result = new ArrayList<>();
+    public List<LocalModel> queryRecordCount(Mocker mocker, int count) {
+        List<LocalModel> result = new ArrayList<>();
         try {
             String sql = H2SqlParser.queryApiRecordCount(mocker, count);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                RecordModel recordModel = new RecordModel();
-                recordModel.setIndex(rs.getString("index"));
-                recordModel.setOperationName(rs.getString("operationName"));
-                recordModel.setCaseNum(rs.getString("num"));
-                result.add(recordModel);
+                LocalModel localModel = new LocalModel();
+                localModel.setIndex(rs.getString("index"));
+                localModel.setOperationName(rs.getString("operationName"));
+                localModel.setCaseNum(rs.getString("num"));
+                result.add(localModel);
             }
         } catch (Throwable e) {
             LOGGER.warn("h2database query record case error", e);
@@ -181,17 +181,18 @@ public class H2StorageService {
         return result;
     }
 
-    public List<RecordModel> queryApiRecordId(Mocker mocker, int count) {
-        List<RecordModel> result = new ArrayList<>();
+    public List<LocalModel> queryApiRecordId(Mocker mocker, int count) {
+        List<LocalModel> result = new ArrayList<>();
         try {
             String sql = H2SqlParser.queryApiRecordId(mocker, count);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                RecordModel recordModel = new RecordModel();
-                recordModel.setRecordId(rs.getString("recordId"));
-                recordModel.setMockCategoryType(rs.getString("mockCategory"));
-                recordModel.setIndex(rs.getString("index"));
-                result.add(recordModel);
+                LocalModel localModel = new LocalModel();
+                localModel.setRecordId(rs.getString("recordId"));
+                localModel.setMockCategoryType(rs.getString("mockCategory"));
+                localModel.setIndex(rs.getString("index"));
+                localModel.setOperationName(mocker.getOperationName());
+                result.add(localModel);
             }
         } catch (Throwable e) {
             LOGGER.warn("h2database query record id error", e);
@@ -199,16 +200,23 @@ public class H2StorageService {
         return result;
     }
 
-    public List<RecordModel> queryJsonList(Mocker mocker, int count) {
-        List<RecordModel> result = new ArrayList<>();
+    public List<LocalModel> queryJsonList(Mocker mocker, int count) {
+        List<LocalModel> result = new ArrayList<>();
         try {
             String sql = H2SqlParser.generateSelectSql(mocker, count);
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
+                String operation = rs.getString("operationName");
+                if ("java.lang.System.currentTimeMillis".equals(operation)) {
+                    continue;
+                }
                 String jsonData = URLDecoder.decode(rs.getString("jsonData"), StandardCharsets.UTF_8.name());
-                RecordModel recordModel = new RecordModel();
-                recordModel.setMessage(jsonData);
-                result.add(recordModel);
+                LocalModel localModel = new LocalModel();
+                localModel.setRecordId(rs.getString("recordId"));
+                localModel.setMockCategoryType(rs.getString("categoryType"));
+                localModel.setOperationName(operation);
+                localModel.setRecordJson(jsonData);
+                result.add(localModel);
             }
         } catch (Throwable e) {
             LOGGER.warn("h2database query json list error", e);

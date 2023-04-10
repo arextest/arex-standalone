@@ -18,13 +18,11 @@ import java.util.Map;
 
 public abstract class ApiHandler {
 
-    public Map<String, String> request(Mocker servletMocker) {
+    public Map<String, String> request(Mocker servletMocker, int port) {
         if (!servletMocker.getCategoryType().isEntryPoint()) {
             return Collections.emptyMap();
         }
         Target target = servletMocker.getTargetRequest();
-
-        Map<String, String> mockerHeader = (Map<String, String>) target.getAttribute("Headers");
 
         Map<String, String> requestHeaders = new HashMap<>();
         requestHeaders.put(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
@@ -32,7 +30,8 @@ public abstract class ApiHandler {
 
         String request = StringUtils.isNotBlank(target.getBody()) ? CommonUtils.decode(target.getBody()) : "";
         HttpEntity httpEntity = new ByteArrayEntity(request.getBytes(StandardCharsets.UTF_8));
-        String url = "http://" + mockerHeader.get("host") + target.attributeAsString("RequestPath");
+        // TODO port
+        String url = "http://localhost:" + port + target.attributeAsString("RequestPath");
         return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, httpEntity, requestHeaders).join();
     }
 

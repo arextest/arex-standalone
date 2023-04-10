@@ -239,7 +239,7 @@ public class SystemUtils {
 
                 throw new IllegalArgumentException("Can not find tools.jar under java home: " + javaHome
                         + ", please try to start arex-cli with full path java. Such as /opt/jdk/bin/java " +
-                        "java -cp arex-cli.jar io.arex.cli.ArexCli");
+                        "java -jar arex-cli.jar");
             }
         } else {
             JAVA_HOME = javaHome;

@@ -28,7 +28,7 @@ public interface Mocker extends Serializable {
 
     String getId();
 
-    MockCategoryType getCategoryType();
+    MockCategory getCategoryType();
 
     String getOperationName();
 

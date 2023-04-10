@@ -3,7 +3,7 @@ package io.arex.standalone.common.model;
 public class ArexMocker implements Mocker {
 
     private String id;
-    private MockCategoryType categoryType;
+    private MockCategory categoryType;
     private String replayId;
     private String recordId;
     private String appId;
@@ -17,7 +17,7 @@ public class ArexMocker implements Mocker {
     public ArexMocker() {
     }
 
-    public ArexMocker(MockCategoryType categoryType) {
+    public ArexMocker(MockCategory categoryType) {
         this.categoryType = categoryType;
     }
 
@@ -25,7 +25,7 @@ public class ArexMocker implements Mocker {
         return this.id;
     }
 
-    public MockCategoryType getCategoryType() {
+    public MockCategory getCategoryType() {
         return this.categoryType;
     }
 
@@ -74,7 +74,7 @@ public class ArexMocker implements Mocker {
         this.id = id;
     }
 
-    public void setCategoryType(MockCategoryType categoryType) {
+    public void setCategoryType(MockCategory categoryType) {
         this.categoryType = categoryType;
     }
 

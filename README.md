@@ -34,7 +34,7 @@ Remember to add the VM parameter when the local application starts the arex-agen
 Simply click the script in the `arex-standalone/bin` directory to start the command line tool, or run it by following `java` command:
 
 ```other
-java -cp "/path/to/arex-cli/target/arex-cli.jar" io.arex.standalone.cli.ArexCli
+java -jar "/path/to/arex-cli/target/arex-cli.jar"
 ```
 
 Dashboard

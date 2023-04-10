@@ -12,7 +12,7 @@ public class LSHandler extends ApiHandler {
     @Override
     public String process(String args) throws Exception {
         Map<String, String> argMap = parseArgs(args);
-        int num = Integer.parseInt(argMap.get("num"));
+        int num = Integer.parseInt(argMap.getOrDefault("num", "0"));
         String operation = argMap.get("operation");
         String recordId = argMap.get("detail");
 

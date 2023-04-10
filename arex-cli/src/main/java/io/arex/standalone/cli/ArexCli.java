@@ -5,7 +5,6 @@ import io.arex.standalone.common.serializer.JacksonSerializer;
 import io.arex.standalone.common.serializer.Serializer;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.common.constant.Constants;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
@@ -72,17 +71,16 @@ public class ArexCli {
                 keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
                 // execute main command / entry
                 cmd.execute(args);
-                String rightPrompt = null;
 
                 // start the shell and process input until the user quits with Ctrl-D
                 String line;
                 while (true) {
                     try {
                         systemRegistry.cleanUp();
-                        line = reader.readLine(Constants.CLI_PROMPT, rightPrompt, (MaskingCallback) null, null);
+                        line = reader.readLine(commands.getPrompt(), commands.getRightPrompt(), (MaskingCallback) null, null);
                         systemRegistry.execute(line);
                     } catch (UserInterruptException e) {
-                        // user interrupt command ignore ignore
+                        // user interrupt command ignore
                     } catch (EndOfFileException e) {
                         // Ctrl-D
                         commands.close();

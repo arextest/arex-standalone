@@ -1,6 +1,5 @@
-package io.arex.standalone.cli.util;
+package io.arex.standalone.common.util;
 
-import io.arex.standalone.common.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 public class JsonUtil {

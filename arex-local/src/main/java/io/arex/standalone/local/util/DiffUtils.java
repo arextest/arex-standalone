@@ -54,6 +54,11 @@ public class DiffUtils {
         DELETE, INSERT, EQUAL
     }
 
+    public boolean hasDiff(String text1, String text2){
+        LinkedList<Diff> diffs = diff_main(text1, text2, true);
+        return diffs != null && diffs.stream().anyMatch(a -> a.operation != Operation.EQUAL);
+    }
+
     /**
      * compare the difference between two texts and return the difference points on both sides
      */

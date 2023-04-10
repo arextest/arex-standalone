@@ -1,13 +1,15 @@
 package io.arex.standalone.common.model;
 
-public class RecordModel {
+public class LocalModel {
     private String recordId;
+    private String replayId;
     private String operationName;
     private String caseNum;
     private String mockCategoryType;
-    private String message;
+    private String recordJson;
+    private String replayJson;
     private String index;
-    public RecordModel() {
+    public LocalModel() {
     }
 
     public String getRecordId() {
@@ -42,19 +44,35 @@ public class RecordModel {
         this.mockCategoryType = mockCategoryType;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     public String getIndex() {
         return index;
     }
 
     public void setIndex(String index) {
         this.index = index;
+    }
+
+    public String getReplayId() {
+        return replayId;
+    }
+
+    public void setReplayId(String replayId) {
+        this.replayId = replayId;
+    }
+
+    public String getRecordJson() {
+        return recordJson;
+    }
+
+    public void setRecordJson(String recordJson) {
+        this.recordJson = recordJson;
+    }
+
+    public String getReplayJson() {
+        return replayJson;
+    }
+
+    public void setReplayJson(String replayJson) {
+        this.replayJson = replayJson;
     }
 }

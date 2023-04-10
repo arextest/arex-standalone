@@ -5,15 +5,9 @@ public class DiffModel {
     private String replayId;
     private String recordDiff;
     private String replayDiff;
-    private MockCategoryType categoryType;
+    private String categoryType;
     private int diffCount;
     private String operationName;
-    public DiffModel() {
-    }
-
-    public DiffModel(MockCategoryType category) {
-        this.categoryType = category;
-    }
 
     public String getRecordId() {
         return recordId;
@@ -47,11 +41,11 @@ public class DiffModel {
         this.replayDiff = replayDiff;
     }
 
-    public MockCategoryType getCategoryType() {
+    public String getCategoryType() {
         return categoryType;
     }
 
-    public void setCategoryType(MockCategoryType categoryType) {
+    public void setCategoryType(String categoryType) {
         this.categoryType = categoryType;
     }
 
