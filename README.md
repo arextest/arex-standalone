@@ -78,7 +78,7 @@ you can use Postman to first request the interface of the local project, so that
 
 ## Command Demonstration
 
-***ls***
+### ls
 
 ![dashboard](arex-cli/src/main/resources/static/img/list.png)
 
@@ -88,7 +88,7 @@ and the number of times each interface was recorded
 > ensure that there are requests coming in locally and recorded,
 the console will output the logs of `[arex] save mover:`
 
-***ls -o/--operation***
+### ls -o/--operation
 
 for example: `ls -o 3` view the recording data of the 3rd interface: /biz/getOrderInfo
 
@@ -104,7 +104,7 @@ click on the symbol `+` or `Detail` button to view the specific recording inform
 
 ![dashboard](arex-cli/src/main/resources/static/img/ls-browser-detail.png)
 
-***replay***
+### replay
 
 ![dashboard](arex-cli/src/main/resources/static/img/replay.png)
 
