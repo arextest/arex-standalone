@@ -1,10 +1,8 @@
 package io.arex.standalone.cli.util;
 
 import io.arex.standalone.common.util.StringUtil;
-
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.regex.Matcher;
 
 public class LogUtil {
 

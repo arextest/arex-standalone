@@ -47,7 +47,6 @@ public class ListCommand implements Runnable {
                      operation = operationName;
                 }
                 options.append("operation=").append(operation).append(Constants.CLI_SEPARATOR);
-                RootCommand.updateApi(operation);
             }
 
             parent.send(spec.name() + options);
@@ -61,11 +60,12 @@ public class ListCommand implements Runnable {
 
     private void process(String response) {
         if (StringUtil.isEmpty(response) || !response.contains("{")) {
-            parent.printErr("query result invalid:{}", response);
+            parent.printErr("query result is empty, please confirm if there are any recorded cases");
             return;
         }
         RootCommand.save(spec.name(), response);
         if (StringUtil.isNotEmpty(operation)) {
+            RootCommand.updateApi(operation);
             parent.println("record result has been displayed in the browser");
             parent.openBrowser();
             return;

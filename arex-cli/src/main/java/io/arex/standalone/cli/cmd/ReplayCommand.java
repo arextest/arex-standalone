@@ -55,7 +55,7 @@ public class ReplayCommand implements Runnable {
             parent.println("difference result has been displayed in the browser");
             parent.openBrowser();
         } catch (Throwable e) {
-            parent.printErr("execute command {} fail, visit {} for more details.", spec.name(), LogUtil.getLogDir());
+            parent.printErr("execute command {} fail:{}, visit {} for more details.", spec.name(), e.getMessage(), LogUtil.getLogDir());
             LogUtil.warn(e);
         }
     }

@@ -37,9 +37,7 @@ public class HttpServer {
                 break;
             }
         }
-//        System.out.println("request="+request);
         String[] requests = request.toString().split(WRAP);
-
         try (OutputStream outputStream = socket.getOutputStream()) {
             String path = getPath(requests);
             outputStream.write(buildResponseHeader(path).getBytes(StandardCharsets.UTF_8));
@@ -54,6 +52,9 @@ public class HttpServer {
     private static boolean valid(String path, OutputStream outputStream) throws IOException {
         if (indexOrAssets(path)) {
             return true;
+        }
+        if (path.contains("favicon.ico")) {
+            return false;
         }
         if (!processorMap.containsKey(path)) {
             outputStream.write(error("invalid uri"));
@@ -75,9 +76,9 @@ public class HttpServer {
             response.append("Content-Type: application/javascript; charset=utf-8").append(WRAP);
         } else if (path.endsWith(".css")) {
             response.append("Content-Type: text/css; charset=utf-8").append(WRAP);
-        } else if (path.endsWith(".ico")) {
-            response.append("Content-Type: image/x-icon").append(WRAP);
-        } else {
+        } else if (path.endsWith(".svg")) {
+            response.append("Content-Type: image/svg+xml; charset=utf-8").append(WRAP);
+        }else {
             response.append("Content-Type: application/json; charset=utf-8").append(WRAP);
         }
         response.append("Access-Control-Allow-Origin: *").append(WRAP);
@@ -110,7 +111,7 @@ public class HttpServer {
     }
 
     private static boolean indexOrAssets(String path) {
-        return StringUtil.isEmpty(path) || path.startsWith("assets/") || path.contains("favicon.ico");
+        return StringUtil.isEmpty(path) || path.startsWith("assets/");
     }
 
     private static Request parseParam(String param) {

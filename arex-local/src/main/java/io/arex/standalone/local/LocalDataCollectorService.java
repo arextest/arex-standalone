@@ -30,9 +30,6 @@ public class LocalDataCollectorService implements DataCollector {
 
     @Override
     public void save(String json) {
-        if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LOGGER.info("[arex] local save mocker: {}", json);
-        }
         H2StorageService.INSTANCE.save(Serializer.deserialize(json, ArexMocker.class), json);
     }
 

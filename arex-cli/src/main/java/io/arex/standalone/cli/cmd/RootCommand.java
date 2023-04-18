@@ -2,11 +2,12 @@ package io.arex.standalone.cli.cmd;
 
 import io.arex.standalone.cli.server.ServerListener;
 import io.arex.standalone.cli.util.TelnetUtil;
+import io.arex.standalone.common.util.CommonUtils;
 import io.arex.standalone.common.util.StringUtil;
 import io.arex.standalone.common.util.IOUtils;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.cli.util.SystemUtils;
 import io.arex.standalone.common.constant.Constants;
+import io.arex.standalone.common.util.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jline.reader.LineReader;
 import org.jline.utils.AttributedStringBuilder;
@@ -206,11 +207,13 @@ public class RootCommand implements Runnable {
 
         ProcessBuilder pb = new ProcessBuilder(command);
         Process proc = pb.start();
-
+        println("starting AREX, please wait...");
         InputStream inputStream = proc.getInputStream();
         InputStream errorStream = proc.getErrorStream();
         IOUtils.copy(inputStream, System.out);
         IOUtils.copy(errorStream, System.err);
+
+        proc.waitFor();
 
         int exitValue = proc.exitValue();
         if (exitValue != 0) {
@@ -316,7 +319,7 @@ public class RootCommand implements Runnable {
     }
 
     public void openBrowser() {
-        Thread openThread = new Thread(() -> {
+        CommonUtils.EXECUTOR.submit(() -> {
             try {
                 Thread.sleep(1000);
                 Desktop desktop = Desktop.getDesktop();
@@ -328,6 +331,5 @@ public class RootCommand implements Runnable {
                 LogUtil.warn(e);
             }
         });
-        openThread.start();
     }
 }

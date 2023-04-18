@@ -6,11 +6,7 @@ import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.standalone.common.util.CommonUtils;
 import io.arex.standalone.common.constant.Constants;
 import org.apache.commons.lang3.StringUtils;
-import shaded.apache.http.HttpEntity;
-import shaded.apache.http.HttpHeaders;
-import shaded.apache.http.entity.ByteArrayEntity;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,14 +21,12 @@ public abstract class ApiHandler {
         Target target = servletMocker.getTargetRequest();
 
         Map<String, String> requestHeaders = new HashMap<>();
-        requestHeaders.put(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
+        requestHeaders.put("Content-Type", "application/json;charset=UTF-8");
         requestHeaders.put("arex-record-id", servletMocker.getRecordId());
 
         String request = StringUtils.isNotBlank(target.getBody()) ? CommonUtils.decode(target.getBody()) : "";
-        HttpEntity httpEntity = new ByteArrayEntity(request.getBytes(StandardCharsets.UTF_8));
-        // TODO port
         String url = "http://localhost:" + port + target.attributeAsString("RequestPath");
-        return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, httpEntity, requestHeaders).join();
+        return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, request, requestHeaders).join();
     }
 
     protected Map<String, String> parseArgs(String argument) {

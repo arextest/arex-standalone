@@ -1,15 +1,16 @@
 package io.arex.standalone.common.util;
 
-import io.arex.standalone.common.model.ArexMocker;
 import io.arex.standalone.common.model.MockCategory;
 import io.arex.standalone.common.model.Mocker;
 
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CommonUtils {
+
+    public static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(1);
+
     public static String decode(String str) {
         try {
             return new String(Base64.getDecoder().decode(str));
@@ -29,7 +30,8 @@ public class CommonUtils {
         builder.append("{");
         if (category.isEntryPoint()) {
             builder.append("\"operation\": \"").append(mocker.getOperationName()).append("\",");
-            builder.append("\"request\": ").append(JsonUtil.cleanFormat(CommonUtils.decode(targetRequest.getBody()))).append(",");
+            builder.append("\"request\": ").append(StringUtil.defaultString(
+                    CommonUtils.decode(targetRequest.getBody()), "\"\"")).append(",");
             builder.append("\"response\": ").append(response);
         }
         if (MockCategory.DATABASE.getName().equals(category.getName())) {
@@ -49,5 +51,6 @@ public class CommonUtils {
         builder.append("}");
         return builder.toString();
     }
+
 
 }

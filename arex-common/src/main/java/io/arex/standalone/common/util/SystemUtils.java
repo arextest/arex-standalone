@@ -1,6 +1,4 @@
-package io.arex.standalone.cli.util;
-
-import org.apache.commons.lang3.ArrayUtils;
+package io.arex.standalone.common.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -180,12 +178,12 @@ public class SystemUtils {
         String arexHomeDir = getArexHomeDir();
         File agentDir = new File(arexHomeDir + File.separator + moduleDir);
         File[] files = agentDir.listFiles();
-        if (ArrayUtils.isEmpty(files)) {
+        if (files == null || files.length == 0) {
             return null;
         }
         for (File file : files) {
             String name = file.getName();
-            if (file.isFile() && name.startsWith(jarNamePrefix)) {
+            if (file.isFile() && name.startsWith(jarNamePrefix) && !name.contains("bootstrap")) {
                 return file.getAbsolutePath();
             }
         }

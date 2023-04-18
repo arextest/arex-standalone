@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static io.arex.standalone.common.constant.Constants.APP_PORT;
+
 public class ReplayHandler extends ApiHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplayHandler.class);
 
@@ -26,7 +28,7 @@ public class ReplayHandler extends ApiHandler {
         Map<String, String> argMap = parseArgs(args);
         int num = Integer.parseInt(argMap.getOrDefault("num", "0"));
         String operation = argMap.get("operation");
-        int port = Integer.parseInt(argMap.getOrDefault("port", "8080"));
+        int port = Integer.parseInt(argMap.getOrDefault("port", APP_PORT));
 
         List<Pair<String, String>> idPairs = replay(num, operation, port);
         if (CollectionUtil.isEmpty(idPairs)) {

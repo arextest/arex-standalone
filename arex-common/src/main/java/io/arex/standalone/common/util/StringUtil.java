@@ -12,6 +12,10 @@ public class StringUtil {
         return str == null ? EMPTY : str;
     }
 
+    public static String defaultString(final String str, String def) {
+        return isEmpty(str) ? def : str;
+    }
+
     public static boolean isEmpty(String value) {
         return value == null || value.length() == 0;
     }

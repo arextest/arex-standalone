@@ -80,10 +80,11 @@ public class ArexCli {
                         line = reader.readLine(commands.getPrompt(), commands.getRightPrompt(), (MaskingCallback) null, null);
                         systemRegistry.execute(line);
                     } catch (UserInterruptException e) {
-                        // user interrupt command ignore
+                        // user interrupt command ignore (Ctrl-C)
                     } catch (EndOfFileException e) {
                         // Ctrl-D
                         commands.close();
+                        System.exit(1);
                         return;
                     } catch (Exception e) {
                         systemRegistry.trace(e);
