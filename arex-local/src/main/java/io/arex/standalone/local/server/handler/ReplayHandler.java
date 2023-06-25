@@ -153,6 +153,7 @@ public class ReplayHandler extends ApiHandler {
                 builder.append("\"request\":\"").append(CommonUtils.decode(targetRequest.getBody())).append("\"");
             }
             if (MockCategoryType.REDIS.getName().equals(mocker.getCategoryType().getName())) {
+                builder.append("\"operation\":\"").append(mocker.getOperationName()).append("\",");
                 builder.append("\"clusterName\":\"").append(targetRequest.attributeAsString("clusterName")).append("\",");
                 builder.append("\"key\":").append(targetRequest.getBody());
             }

@@ -2,13 +2,9 @@ package io.arex.standalone.cli.cmd;
 
 import io.arex.standalone.cli.server.ServerListener;
 import io.arex.standalone.cli.util.TelnetUtil;
-import io.arex.standalone.common.util.CommonUtils;
-import io.arex.standalone.common.util.StringUtil;
-import io.arex.standalone.common.util.IOUtils;
+import io.arex.standalone.common.util.*;
 import io.arex.standalone.cli.util.LogUtil;
 import io.arex.standalone.common.constant.Constants;
-import io.arex.standalone.common.util.SystemUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.jline.reader.LineReader;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -119,7 +115,7 @@ public class RootCommand implements Runnable {
             int choice = 0;
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!NumberUtils.isDigits(line)) {
+                if (NumberUtils.isNotDigits(line)) {
                     printErr("not a number");
                     continue;
                 }
@@ -321,6 +317,7 @@ public class RootCommand implements Runnable {
     public void openBrowser() {
         CommonUtils.EXECUTOR.submit(() -> {
             try {
+                // to avoid screen switches too fast for users to see command line prompts
                 Thread.sleep(1000);
                 Desktop desktop = Desktop.getDesktop();
                 if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.BROWSE)) {

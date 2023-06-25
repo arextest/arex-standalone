@@ -6,9 +6,7 @@ import io.arex.standalone.cli.server.process.DebugProcessor;
 import io.arex.standalone.cli.server.process.DetailProcessor;
 import io.arex.standalone.cli.server.process.ListProcessor;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.common.serializer.Serializer;
 import io.arex.standalone.common.util.*;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.net.Socket;
@@ -89,7 +87,7 @@ public class HttpServer {
     }
 
     private static String getPath(String[] requests) {
-        String path = StringUtils.substringBetween(requests[0], " ", " ");
+        String path = StringUtil.substringBetween(requests[0], " ", " ");
         path = path == null ? "" : path;
         if (path.startsWith(ROOT)) {
             return path.substring(1).toLowerCase();
@@ -116,7 +114,7 @@ public class HttpServer {
 
     private static Request parseParam(String param) {
         if (param != null && param.contains("{") && param.contains("}")) {
-            return Serializer.deserialize(param, Request.class);
+            return SerializeUtils.deserialize(param, Request.class);
         }
         return null;
     }

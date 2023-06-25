@@ -5,8 +5,8 @@ import io.arex.standalone.cli.server.Request;
 import io.arex.standalone.common.constant.Constants;
 import io.arex.standalone.common.model.DiffModel;
 import io.arex.standalone.common.model.LocalModel;
-import io.arex.standalone.common.serializer.Serializer;
 import io.arex.standalone.common.util.CollectionUtil;
+import io.arex.standalone.common.util.SerializeUtils;
 import io.arex.standalone.common.util.StringUtil;
 import io.arex.standalone.common.util.TypeUtil;
 
@@ -32,7 +32,7 @@ public class ListProcessor extends AbstractProcessor {
     }
 
     private String parse(String response) {
-        List<DiffModel> diffList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFF));
+        List<DiffModel> diffList = SerializeUtils.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFF));
         if (CollectionUtil.isEmpty(diffList)) {
             return fail("deserialize result is empty");
         }
@@ -46,6 +46,6 @@ public class ListProcessor extends AbstractProcessor {
             localModel.setMockCategoryType(diffModel.getCategoryType());
             replayList.add(localModel);
         }
-        return Serializer.serialize(replayList);
+        return SerializeUtils.serialize(replayList);
     }
 }

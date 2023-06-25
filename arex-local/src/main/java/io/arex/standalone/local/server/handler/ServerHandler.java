@@ -1,11 +1,11 @@
 package io.arex.standalone.local.server.handler;
 
 import io.arex.standalone.common.constant.Constants;
+import io.arex.standalone.common.util.StringUtil;
 import io.termd.core.readline.Function;
 import io.termd.core.readline.Keymap;
 import io.termd.core.readline.Readline;
 import io.termd.core.tty.TtyConnection;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +30,8 @@ public class ServerHandler {
 
     public static void readline(Readline readline, TtyConnection conn) {
         readline.readline(conn, Constants.CLI_PROMPT, line -> {
-            line = StringUtils.defaultString(line);
-            if (StringUtils.equalsIgnoreCase(line, "exit")) {
+            line = StringUtil.defaultString(line);
+            if (StringUtil.equalsIgnoreCase(line, "exit")) {
                 conn.write("exit\n").close();
             } else {
                 String response;

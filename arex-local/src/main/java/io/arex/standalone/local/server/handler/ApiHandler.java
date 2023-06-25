@@ -5,7 +5,7 @@ import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.foundation.util.AsyncHttpClientUtil;
 import io.arex.standalone.common.util.CommonUtils;
 import io.arex.standalone.common.constant.Constants;
-import org.apache.commons.lang3.StringUtils;
+import io.arex.standalone.common.util.StringUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,26 +24,26 @@ public abstract class ApiHandler {
         requestHeaders.put("Content-Type", "application/json;charset=UTF-8");
         requestHeaders.put("arex-record-id", servletMocker.getRecordId());
 
-        String request = StringUtils.isNotBlank(target.getBody()) ? CommonUtils.decode(target.getBody()) : "";
+        String request = StringUtil.isNotEmpty(target.getBody()) ? CommonUtils.decode(target.getBody()) : "";
         String url = "http://localhost:" + port + target.attributeAsString("RequestPath");
         return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, request, requestHeaders).join();
     }
 
     protected Map<String, String> parseArgs(String argument) {
-        if (StringUtils.isBlank(argument)) {
+        if (StringUtil.isBlank(argument)) {
             return null;
         }
-        String[] args = StringUtils.splitByWholeSeparator(argument.trim(), Constants.CLI_SEPARATOR);
+        String[] args = StringUtil.splitByWholeSeparator(argument.trim(), Constants.CLI_SEPARATOR);
         Map<String, String> argMap = new LinkedHashMap<>();
         for (String arg : args) {
-            if (StringUtils.isBlank(arg)) {
+            if (StringUtil.isBlank(arg)) {
                 continue;
             }
             String[] options = parseOption(arg);
             if (options.length > 1) {
                 argMap.put(options[0], options[1]);
             } else {
-                argMap.put(options[0], StringUtils.EMPTY);
+                argMap.put(options[0], StringUtil.EMPTY);
             }
         }
         return argMap;

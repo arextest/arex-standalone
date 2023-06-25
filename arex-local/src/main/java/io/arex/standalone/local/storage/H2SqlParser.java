@@ -1,10 +1,9 @@
 package io.arex.standalone.local.storage;
 
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.util.IOUtils;
+import io.arex.standalone.common.util.StringUtil;
 import io.arex.standalone.local.model.DiffMocker;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,18 +25,18 @@ public class H2SqlParser {
                     H2StorageService.class.getClassLoader().getResourceAsStream("db/h2/schema.txt"));
             String[] schemaArray = schemaSql.split("--");
             for (String schemas : schemaArray) {
-                if (StringUtils.isBlank(schemas)) {
+                if (StringUtil.isBlank(schemas)) {
                     continue;
                 }
                 String[] sqlArray = schemas.split("\n");
                 String tableName = "";
                 StringBuilder schema = new StringBuilder();
                 for (String sql : sqlArray) {
-                    if (StringUtils.isBlank(sql)) {
+                    if (StringUtil.isBlank(sql)) {
                         continue;
                     }
                     if (sql.startsWith("CREATE TABLE")) {
-                        tableName = StringUtils.substringBetween(sql, "EXISTS ", "(");
+                        tableName = StringUtil.substringBetween(sql, "EXISTS ", "(");
                     }
                     schema.append(sql);
                     if (sql.equals(");")) {
@@ -89,10 +88,10 @@ public class H2SqlParser {
     public static String generateSelectSql(Mocker mocker, int count) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM MOCKER_INFO");
         sqlBuilder.append(" WHERE 1 = 1");
-        if (StringUtils.isNotBlank(mocker.getRecordId())) {
+        if (StringUtil.isNotBlank(mocker.getRecordId())) {
             sqlBuilder.append(" AND RECORDID = '").append(mocker.getRecordId()).append("'");
         }
-        if (StringUtils.isNotBlank(mocker.getReplayId())) {
+        if (StringUtil.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
         } else {
             sqlBuilder.append(" AND REPLAYID = ''");
@@ -100,10 +99,10 @@ public class H2SqlParser {
         if (mocker.getCategoryType() != null) {
             sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
         }
-        if (StringUtils.isNotBlank(mocker.getOperationName())) {
+        if (StringUtil.isNotBlank(mocker.getOperationName())) {
             sqlBuilder.append(" AND OPERATIONNAME = '").append(mocker.getOperationName()).append("'");
         }
-        if (mocker.getTargetRequest() != null && StringUtils.isNotBlank(mocker.getTargetRequest().getBody())) {
+        if (mocker.getTargetRequest() != null && StringUtil.isNotBlank(mocker.getTargetRequest().getBody())) {
             sqlBuilder.append(" AND REQUEST = '").append(mocker.getTargetRequest().getBody()).append("'");
         }
         sqlBuilder.append(" ORDER BY CREATIONTIME DESC");
@@ -118,10 +117,10 @@ public class H2SqlParser {
         if (mocker.getCategoryType() != null) {
             sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType()).append("'");
         }
-        if (StringUtils.isNotBlank(mocker.getRecordId())) {
+        if (StringUtil.isNotBlank(mocker.getRecordId())) {
             sqlBuilder.append(" AND RECORDID = '").append(mocker.getRecordId()).append("'");
         }
-        if (StringUtils.isNotBlank(mocker.getReplayId())) {
+        if (StringUtil.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
         }
         if (count > 0) {
@@ -133,7 +132,7 @@ public class H2SqlParser {
     public static String queryApiRecordCount(Mocker mocker, int count) {
         StringBuilder sqlBuilder = new StringBuilder("select rownum() as index, * from (");
         sqlBuilder.append(" SELECT OPERATIONNAME, count(1) as NUM FROM MOCKER_INFO WHERE REPLAYID = ''");
-        if (StringUtils.isNotBlank(mocker.getAppId())) {
+        if (StringUtil.isNotBlank(mocker.getAppId())) {
             sqlBuilder.append(" AND APPID = '").append(mocker.getAppId()).append("'");
         }
         sqlBuilder.append(" AND CATEGORYTYPE = 'Servlet'");
@@ -150,11 +149,11 @@ public class H2SqlParser {
         sqlBuilder.append(" select recordId, group_concat(distinct categoryType) as mockCategory ");
         sqlBuilder.append(" from mocker_info where replayId = '' and recordId in (");
         sqlBuilder.append(" select recordId from mocker_info where replayId = ''");
-        if (StringUtils.isNotBlank(mocker.getAppId())) {
+        if (StringUtil.isNotBlank(mocker.getAppId())) {
             sqlBuilder.append(" AND appId = '").append(mocker.getAppId()).append("'");
         }
         sqlBuilder.append(" and categoryType = 'Servlet' ");
-        if (StringUtils.isNotBlank(mocker.getOperationName())) {
+        if (StringUtil.isNotBlank(mocker.getOperationName())) {
             sqlBuilder.append(" AND operationName = '").append(mocker.getOperationName()).append("'");
         }
         sqlBuilder.append(" ) and operationName != 'java.lang.System.currentTimeMillis'");

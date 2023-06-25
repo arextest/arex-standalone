@@ -3,6 +3,8 @@ package io.arex.standalone.common.util;
 public class ArrayUtils {
     private ArrayUtils() {}
 
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     public static byte[] addAll(final byte[] array1, final byte... array2) {
         if (array1 == null) {
             return clone(array2);
@@ -20,5 +22,9 @@ public class ArrayUtils {
             return new byte[0];
         }
         return array.clone();
+    }
+
+    public static <T> boolean isNotEmpty(final T[] array) {
+        return (array != null && array.length != 0);
     }
 }

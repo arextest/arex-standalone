@@ -1,7 +1,5 @@
 package io.arex.standalone.common.util;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class JsonUtil {
     public static String formatJson(String jsonStr) {
         if (StringUtil.isEmpty(jsonStr)) {
@@ -80,9 +78,4 @@ public class JsonUtil {
         return tmp;
     }
 
-    public static String cleanFormat(String content) {
-        String[] search = new String[]{"\n", "\r", "\t"};
-        String[] replace = new String[]{"", "", ""};
-        return StringUtils.replaceEach(content, search, replace);
-    }
 }

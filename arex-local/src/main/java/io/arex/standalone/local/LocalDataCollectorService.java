@@ -41,10 +41,6 @@ public class LocalDataCollectorService implements DataCollector {
         }
         H2StorageService.INSTANCE.save(mocker, json);
         mocker.setReplayId(null);
-        String result = H2StorageService.INSTANCE.queryJson(mocker);
-        if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LOGGER.info("[arex] local query mocker: {}", result);
-        }
-        return result;
+        return H2StorageService.INSTANCE.queryJson(mocker);
     }
 }

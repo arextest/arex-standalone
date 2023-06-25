@@ -44,6 +44,7 @@ public class CommonUtils {
             builder.append("\"request\": \"").append(CommonUtils.decode(targetRequest.getBody())).append("\"");
         }
         if (MockCategory.REDIS.getName().equals(category.getName())) {
+            builder.append("\"operation\": \"").append(mocker.getOperationName()).append("\",");
             builder.append("\"clusterName\": \"").append(targetRequest.attributeAsString("clusterName")).append("\",");
             builder.append("\"key\": ").append(targetRequest.getBody()).append(",");
             builder.append("\"result\": ").append(response);

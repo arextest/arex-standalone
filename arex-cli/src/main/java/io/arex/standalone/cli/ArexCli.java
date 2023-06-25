@@ -1,8 +1,8 @@
 package io.arex.standalone.cli;
 
 
-import io.arex.standalone.common.serializer.JacksonSerializer;
-import io.arex.standalone.common.serializer.Serializer;
+import io.arex.foundation.serializer.JacksonSerializer;
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.util.LogUtil;
 import org.fusesource.jansi.AnsiConsole;
@@ -100,6 +100,8 @@ public class ArexCli {
     }
 
     private static void init() {
+        // cli is an independent process that does not depend on arex-agent startup
+        // so need to initialize the serializer here
         Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
 }

@@ -134,7 +134,7 @@ Similarly, you can also click the `Debug` button to play back a single case.
 2. If your JDK version is 1.8, ensure that **tools.jar** exists in your computer's `/jdk/lib/`, 
    agent startup needs to rely on this jar.
 3. The locally recorded data is stored in the current user of the operating system: 
-   `~/arexdb.mv.db`, you can delete the data in this directory to clear the local data.
+   `~/arexdb.mv.db`, you can delete the data in this directory to clear the local data(if you want).
 
 ## License
 - Code: [Apache-2.0](https://github.com/arextest/arex-agent-java/blob/main/LICENSE)

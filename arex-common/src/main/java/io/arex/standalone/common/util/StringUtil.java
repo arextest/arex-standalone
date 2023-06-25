@@ -1,5 +1,7 @@
 package io.arex.standalone.common.util;
 
+import io.arex.agent.thirdparty.util.CharSequenceUtils;
+
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -7,6 +9,7 @@ import java.util.regex.Matcher;
 public class StringUtil {
     public static final String EMPTY = "";
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
+    public static final int INDEX_NOT_FOUND = -1;
 
     public static String defaultString(final String str) {
         return str == null ? EMPTY : str;
@@ -37,6 +40,10 @@ public class StringUtil {
         } else {
             return true;
         }
+    }
+
+    public static boolean isNotBlank(final CharSequence cs) {
+        return !isBlank(cs);
     }
 
     public static String[] split(final String source, final char separator) {
@@ -374,5 +381,92 @@ public class StringUtil {
             }
         }
         return computed;
+    }
+
+    public static boolean equalsIgnoreCase(final CharSequence str1, final CharSequence str2) {
+        if (str1 == null || str2 == null) {
+            return str1 == str2;
+        } else if (str1 == str2) {
+            return true;
+        } else if (str1.length() != str2.length()) {
+            return false;
+        } else {
+            return CharSequenceUtils.regionMatches(str1, true, 0, str2, 0, str1.length());
+        }
+    }
+
+    public static String substringBetween(final String str, final String open, final String close) {
+        if (str == null || open == null || close == null) {
+            return null;
+        }
+        final int start = str.indexOf(open);
+        if (start != INDEX_NOT_FOUND) {
+            final int end = str.indexOf(close, start + open.length());
+            if (end != INDEX_NOT_FOUND) {
+                return str.substring(start + open.length(), end);
+            }
+        }
+        return null;
+    }
+
+    public static String[] substringsBetween(final String str, final String open, final String close) {
+        if (str == null || isEmpty(open) || isEmpty(close)) {
+            return null;
+        }
+        final int strLen = str.length();
+        if (strLen == 0) {
+            return ArrayUtils.EMPTY_STRING_ARRAY;
+        }
+        final int closeLen = close.length();
+        final int openLen = open.length();
+        final List<String> list = new ArrayList<String>();
+        int pos = 0;
+        while (pos < strLen - closeLen) {
+            int start = str.indexOf(open, pos);
+            if (start < 0) {
+                break;
+            }
+            start += openLen;
+            final int end = str.indexOf(close, start);
+            if (end < 0) {
+                break;
+            }
+            list.add(str.substring(start, end));
+            pos = end + closeLen;
+        }
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.toArray(new String [list.size()]);
+    }
+
+    public static String replace(final String text, final String searchString, final String replacement) {
+        return replace(text, searchString, replacement, -1);
+    }
+
+    public static String replace(final String text, final String searchString, final String replacement, int max) {
+        if (isEmpty(text) || isEmpty(searchString) || replacement == null || max == 0) {
+            return text;
+        }
+        int start = 0;
+        int end = text.indexOf(searchString, start);
+        if (end == INDEX_NOT_FOUND) {
+            return text;
+        }
+        final int replLength = searchString.length();
+        int increase = replacement.length() - replLength;
+        increase = increase < 0 ? 0 : increase;
+        increase *= max < 0 ? 16 : max > 64 ? 64 : max;
+        final StringBuilder buf = new StringBuilder(text.length() + increase);
+        while (end != INDEX_NOT_FOUND) {
+            buf.append(text.substring(start, end)).append(replacement);
+            start = end + replLength;
+            if (--max == 0) {
+                break;
+            }
+            end = text.indexOf(searchString, start);
+        }
+        buf.append(text.substring(start));
+        return buf.toString();
     }
 }
