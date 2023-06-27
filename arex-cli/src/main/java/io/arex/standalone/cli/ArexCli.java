@@ -5,7 +5,6 @@ import io.arex.foundation.serializer.JacksonSerializer;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.common.Constants;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
@@ -72,20 +71,20 @@ public class ArexCli {
                 keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
                 // execute main command / entry
                 cmd.execute(args);
-                String rightPrompt = null;
 
                 // start the shell and process input until the user quits with Ctrl-D
                 String line;
                 while (true) {
                     try {
                         systemRegistry.cleanUp();
-                        line = reader.readLine(Constants.CLI_PROMPT, rightPrompt, (MaskingCallback) null, null);
+                        line = reader.readLine(commands.getPrompt(), commands.getRightPrompt(), (MaskingCallback) null, null);
                         systemRegistry.execute(line);
                     } catch (UserInterruptException e) {
-                        // user interrupt command ignore ignore
+                        // user interrupt command ignore (Ctrl-C)
                     } catch (EndOfFileException e) {
                         // Ctrl-D
                         commands.close();
+                        System.exit(1);
                         return;
                     } catch (Exception e) {
                         systemRegistry.trace(e);
@@ -101,6 +100,8 @@ public class ArexCli {
     }
 
     private static void init() {
+        // cli is an independent process that does not depend on arex-agent startup
+        // so need to initialize the serializer here
         Serializer.builder(JacksonSerializer.INSTANCE).build();
     }
 }

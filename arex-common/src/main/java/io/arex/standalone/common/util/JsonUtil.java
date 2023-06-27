@@ -1,6 +1,4 @@
-package io.arex.standalone.cli.util;
-
-import io.arex.agent.bootstrap.util.StringUtil;
+package io.arex.standalone.common.util;
 
 public class JsonUtil {
     public static String formatJson(String jsonStr) {
@@ -79,4 +77,5 @@ public class JsonUtil {
         }
         return tmp;
     }
+
 }

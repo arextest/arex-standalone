@@ -39,7 +39,7 @@ public class RecordCommand implements Runnable {
             parent.send(spec.name() + options);
             parent.println(parent.receive(spec.name()));
         } catch (Throwable e) {
-            parent.printErr("execute {} fail, visit {} for more details.", spec.name(), LogUtil.getLogDir());
+            parent.printErr("execute command {} fail:{}, visit {} for more details.", spec.name(), e.getMessage(), LogUtil.getLogDir());
             LogUtil.warn(e);
         }
     }

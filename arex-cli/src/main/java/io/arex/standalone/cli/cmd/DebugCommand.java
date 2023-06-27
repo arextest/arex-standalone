@@ -1,10 +1,14 @@
 package io.arex.standalone.cli.cmd;
 
-import io.arex.standalone.cli.util.JsonUtil;
+import io.arex.standalone.common.constant.Constants;
+import io.arex.standalone.common.util.JsonUtil;
+import io.arex.standalone.common.util.StringUtil;
 import io.arex.standalone.cli.util.LogUtil;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+
+import static io.arex.standalone.common.constant.Constants.APP_PORT;
 
 /**
  * Debug Command
@@ -15,10 +19,10 @@ import picocli.CommandLine.Option;
         header = "@|yellow [debug command]|@ @|green local debugging of specific cases|@",
         description = "local debugging of specific cases", mixinStandardHelpOptions = true, sortOptions = false)
 public class DebugCommand implements Runnable {
-
     @Option(names = {"-r", "--recordId"}, required = true, description = "record id, required Option")
     String recordId;
-
+    @CommandLine.Option(names = {"-p", "--port"}, description = "your own local application http port number", defaultValue = APP_PORT, hidden = true)
+    int port;
     @CommandLine.ParentCommand
     RootCommand parent;
 
@@ -28,14 +32,27 @@ public class DebugCommand implements Runnable {
     @Override
     public void run() {
         try {
-            parent.send(spec.name() + " " + recordId);
+            StringBuilder options = new StringBuilder(" ");
+            options.append("recordId=").append(recordId).append(Constants.CLI_SEPARATOR);
+            int currentAppPort = RootCommand.currentAppPort();
+            if (currentAppPort > 0) {
+                port = currentAppPort;
+            }
+            options.append("port=").append(port).append(Constants.CLI_SEPARATOR);
+            parent.println("start debug...");
+            parent.send(spec.name() + options);
             String response = parent.receive(spec.name());
-            parent.println("response:");
+            if (StringUtil.isEmpty(response) || !response.contains("{")) {
+                parent.printErr("query result invalid:{}", response);
+                return;
+            }
+            parent.println("debug complete, response:");
             parent.println(JsonUtil.formatJson(response));
             parent.println("");
         } catch (Throwable e) {
-            parent.printErr("execute {} fail, visit {} for more details.", spec.name(), LogUtil.getLogDir());
+            parent.printErr("execute command {} fail:{}, visit {} for more details.", spec.name(), e.getMessage(), LogUtil.getLogDir());
             LogUtil.warn(e);
         }
     }
+
 }

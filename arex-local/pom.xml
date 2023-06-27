@@ -66,6 +66,10 @@
                                     <pattern>org.h2</pattern>
                                     <shadedPattern>shaded.org.h2</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.slf4j</pattern>
+                                    <shadedPattern>shaded.org.slf4j</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -76,6 +80,8 @@
                             <include>io.termd:termd-core</include>
                             <include>io.netty:**</include>
                             <include>com.h2database:h2</include>
+                            <include>org.slf4j:slf4j-api</include>
+                            <include>org.slf4j:slf4j-simple</include>
                             <include>io.arex.standalone:**</include>
                         </includes>
                     </artifactSet>

@@ -10,9 +10,11 @@ CLASS_PATH="arex-cli/target/"
 
 CLIENT_JAR="../${CLASS_PATH}arex-cli.jar"
 
-if [ ! -f "${CLIENT_JAR}" ]; then
+if [ -f "./arex-cli.jar" ]; then
+    CLIENT_JAR="./arex-cli.jar"
+elif [ ! -f "${CLIENT_JAR}" ]; then
     echo "Can not find ${CLIENT_JAR} under ${CLASS_PATH}, you can run: mvn clean install,to generate jar."
     exit 1
 fi
 
-java -cp ${CLIENT_JAR} io.arex.standalone.cli.ArexCli
+java -jar ${CLIENT_JAR}

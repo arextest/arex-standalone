@@ -5,9 +5,8 @@ package io.arex.standalone.local.util;
  * https://github.com/google/diff-match-patch
  */
 import io.arex.agent.bootstrap.internal.Pair;
-import io.arex.agent.bootstrap.util.StringUtil;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import io.arex.standalone.common.util.ArrayUtils;
+import io.arex.standalone.common.util.StringUtil;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -52,6 +51,11 @@ public class DiffUtils {
      */
     public enum Operation {
         DELETE, INSERT, EQUAL
+    }
+
+    public boolean hasDiff(String text1, String text2){
+        LinkedList<Diff> diffs = diff_main(text1, text2, true);
+        return diffs != null && diffs.stream().anyMatch(a -> a.operation != Operation.EQUAL);
     }
 
     /**
@@ -1171,11 +1175,11 @@ public class DiffUtils {
 
     public String diff_text1(String source) {
         source = source.replace("\t", "    ");
-        String[] insArray = StringUtils.substringsBetween(source, "<ins>", "</ins>");
+        String[] insArray = StringUtil.substringsBetween(source, "<ins>", "</ins>");
         if (ArrayUtils.isNotEmpty(insArray)) {
             for (String ins : insArray) {
                 ins = "<ins>" + ins + "</ins>";
-                source = StringUtils.replace(source, ins, "");
+                source = StringUtil.replace(source, ins, "");
             }
         }
 
@@ -1206,8 +1210,8 @@ public class DiffUtils {
                 nextDiff = false;
             }
 
-            str = StringUtils.replace(str, "<del>", "");
-            str = StringUtils.replace(str, "</del>", "");
+            str = StringUtil.replace(str, "<del>", "");
+            str = StringUtil.replace(str, "</del>", "");
             // generate command line ANSI syntax
             text.append("@|bg(52) ").append(str).append("|@").append("\n");
         }
@@ -1215,11 +1219,11 @@ public class DiffUtils {
     }
 
     public String diff_text2(String source) {
-        String[] delArray = StringUtils.substringsBetween(source, "<del>", "</del>");
+        String[] delArray = StringUtil.substringsBetween(source, "<del>", "</del>");
         if (ArrayUtils.isNotEmpty(delArray)) {
             for (String del : delArray) {
                 del = "<del>" + del + "</del>";
-                source = StringUtils.replace(source, del, "");
+                source = StringUtil.replace(source, del, "");
             }
         }
 
@@ -1250,8 +1254,8 @@ public class DiffUtils {
                 nextDiff = false;
             }
 
-            str = StringUtils.replace(str, "<ins>", "");
-            str = StringUtils.replace(str, "</ins>", "");
+            str = StringUtil.replace(str, "<ins>", "");
+            str = StringUtil.replace(str, "</ins>", "");
             // generate command line ANSI syntax
             text.append("@|bg(52) ").append(str).append("|@").append("\n");
         }

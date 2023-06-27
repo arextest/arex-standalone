@@ -1,16 +1,13 @@
 package io.arex.standalone.cli.cmd;
 
-
-import io.arex.agent.bootstrap.util.StringUtil;
-import io.arex.foundation.util.IOUtils;
+import io.arex.standalone.cli.server.ServerListener;
+import io.arex.standalone.cli.util.TelnetUtil;
+import io.arex.standalone.common.util.*;
 import io.arex.standalone.cli.util.LogUtil;
-import io.arex.standalone.cli.util.SystemUtils;
-import io.arex.standalone.common.Constants;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.net.telnet.TelnetClient;
-import org.apache.commons.net.telnet.TelnetOptionHandler;
-import org.apache.commons.net.telnet.WindowSizeOptionHandler;
+import io.arex.standalone.common.constant.Constants;
 import org.jline.reader.LineReader;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -18,28 +15,23 @@ import picocli.CommandLine.Model;
 import picocli.CommandLine.Spec;
 import picocli.shell.jline3.PicocliCommands;
 
+import java.awt.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.net.URI;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+
+import static io.arex.standalone.common.constant.Constants.APP_PORT;
 
 /**
  * Root Command
  * @Date: Created in 2022/4/2
  * @Modified By:
  */
-@Command(name = "version 1.0.0", header = {
-        "@|bold,red   ,---. |@@|bold,yellow  ,------.|@@|bold,cyan  ,------.|@@|bold,magenta ,--.   ,--.|@",
-        "@|bold,red  /  O  \\ |@@|bold,yellow |  .--. '|@@|bold,cyan |  .---'|@@|bold,magenta  \\  `.'  / |@",
-        "@|bold,red |  .-.  ||@@|bold,yellow |  '--'.'|@@|bold,cyan |  `--,  |@@|bold,magenta  .'    \\  |@",
-        "@|bold,red |  | |  ||@@|bold,yellow |  |\\  \\|@@|bold,cyan  |  `---.|@@|bold,magenta  /  .'.  \\ |@",
-        "@|bold,red `--' `--'|@@|bold,yellow `--' '--'|@@|bold,cyan `------'|@@|bold,magenta '--'   '--'|@",
-        ""},
+@Command(name = "version 1.0.0",
         description = "Arex Commander",
         footer = {"", "Press Ctrl-D to exit."},
-        subcommands = {ReplayCommand.class, WatchCommand.class, DebugCommand.class,
+        subcommands = {ListCommand.class, ReplayCommand.class, WatchCommand.class, DebugCommand.class,
                 PicocliCommands.ClearScreen.class, HelpCommand.class})
 public class RootCommand implements Runnable {
 
@@ -47,7 +39,10 @@ public class RootCommand implements Runnable {
     String ip;
 
     @CommandLine.Option(names = {"-p", "--port"}, description = "arex server tcp port", defaultValue = "4000", hidden = true)
-    int port;
+    int tcpPort;
+
+    @CommandLine.Option(names = {"-h", "--httpport"}, description = "arex server http port", defaultValue = "4050", hidden = true)
+    int httpPort;
 
     @Spec
     Model.CommandSpec spec;
@@ -58,16 +53,12 @@ public class RootCommand implements Runnable {
 
     LineReader reader;
 
-    TelnetClient telnet;
-
-    InputStream inputStream;
-
-    OutputStream outputStream;
-
-    PrintStream pStream;
-
     int terminalWidth = 110;
     int terminalHeight = 50;
+    static final String API = "api";
+    static final String CMD = "cmd";
+    static final String PORT = "port";
+    static Map<String, String> cached = new HashMap<>();
 
     public void setReader(LineReader reader){
         out = reader.getTerminal().writer();
@@ -77,13 +68,32 @@ public class RootCommand implements Runnable {
 
     @Override
     public void run() {
+        welcome();
         if (!agent()) {
             return;
         }
         if (!connect()) {
+            printErr("connect fail, visit {} for more details.", LogUtil.getLogDir());
             return;
         }
+        println("connect {} {}", ip, tcpPort);
+
         spec.commandLine().usage(out);
+        start();
+    }
+
+    private void welcome() {
+        out.println(CommandLine.Help.Ansi.AUTO.string("@|bold,blue     ___    ____  _______  __|@"));
+        out.println(CommandLine.Help.Ansi.AUTO.string("@|bold,blue    /   |  / __ \\/ ____/ |/ /|@"));
+        out.println(CommandLine.Help.Ansi.AUTO.string("@|bold,blue   / /| | / /_/ / __/  |   / |@"));
+        out.println(CommandLine.Help.Ansi.AUTO.string("@|bold,blue  / ___ |/ _, _/ /___ /   |  |@"));
+        out.println(CommandLine.Help.Ansi.AUTO.string("@|bold,blue /_/  |_/_/ |_/_____//_/|_|  |@"));
+        out.println("");
+        out.println(CommandLine.Help.Ansi.AUTO.string(
+                "@|bold,cyan Automated regression testing platform with real data|@"));
+        out.println(CommandLine.Help.Ansi.AUTO.string(
+                "@|bold,cyan http://arextest.com|@"));
+        out.println("");
     }
 
     public boolean agent() {
@@ -105,7 +115,7 @@ public class RootCommand implements Runnable {
             int choice = 0;
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!NumberUtils.isDigits(line)) {
+                if (NumberUtils.isNotDigits(line)) {
                     printErr("not a number");
                     continue;
                 }
@@ -132,22 +142,22 @@ public class RootCommand implements Runnable {
                 return false;
             }
 
-            long tcpPortPid = SystemUtils.findTcpListenProcess(port);
+            long tcpPortPid = SystemUtils.findTcpListenProcess(tcpPort);
             // check tcp port is available
             if (tcpPortPid > 0 && tcpPortPid == selectPid) {
-                println("The target process {} already listen port {}, skip attach.", selectPid, port);
+                println("The target process {} already listen port {}, skip attach.", selectPid, tcpPort);
                 return true;
             }
             if (tcpPortPid > 0 && tcpPortPid != selectPid) {
                 printErr("The tcp port {} is used by process {} instead of target process {}, you can specify port number, " +
-                        "command line example: java -cp arex-cli.jar io.arex.cli.ArexCli -p port number",
-                        port, tcpPortPid, selectPid);
+                        "command line example: java -jar arex-cli.jar -p [port number]",
+                        tcpPort, tcpPortPid, selectPid);
                 return false;
             }
 
             return attach(selectPid);
         } catch (Throwable e) {
-            printErr("agent fail, visit {} for more details.", LogUtil.getLogDir());
+            printErr("agent fail: {}, visit {} for more details.", e.getMessage(), LogUtil.getLogDir());
             LogUtil.warn(e);
         }
         return false;
@@ -175,20 +185,31 @@ public class RootCommand implements Runnable {
         }
 
         command.add("-jar");
-        command.add(SystemUtils.findModuleJarDir(
-                "arex-attacher" + File.separator + "target", "arex-attacher"));
+        String attachJarPath = SystemUtils.findModuleJarDir("", "arex-attacher");
+        if (StringUtil.isEmpty(attachJarPath)) {
+            printErr("{} jar not exist, please confirm whether it is in the same level directory", "arex-attacher");
+            return false;
+        }
+        command.add(attachJarPath);
         command.add(""+pid);
-        command.add(SystemUtils.findModuleJarDir("arex-agent-jar", "arex-agent"));
+        String agentJarPath = SystemUtils.findModuleJarDir("", "arex-agent");
+        if (StringUtil.isEmpty(agentJarPath)) {
+            printErr("{} jar not exist, please confirm whether it is in the same level directory", "arex-agent-jar");
+            return false;
+        }
+        command.add(agentJarPath);
 
-        command.add("arex.storage.mode=local;arex.server.tcp.port=" + port);
+        command.add("arex.storage.mode=local;arex.enable.debug=true;arex.server.tcp.port=" + tcpPort);
 
         ProcessBuilder pb = new ProcessBuilder(command);
         Process proc = pb.start();
-
+        println("starting AREX, please wait...");
         InputStream inputStream = proc.getInputStream();
         InputStream errorStream = proc.getErrorStream();
         IOUtils.copy(inputStream, System.out);
         IOUtils.copy(errorStream, System.err);
+
+        proc.waitFor();
 
         int exitValue = proc.exitValue();
         if (exitValue != 0) {
@@ -201,89 +222,19 @@ public class RootCommand implements Runnable {
     }
 
     private boolean connect() {
-        try {
-            telnet = new TelnetClient();
-            telnet.setConnectTimeout(5000);
-            TelnetOptionHandler sizeOpt = new WindowSizeOptionHandler(
-                    getTerminalWidth(), getTerminalHeight(),
-                    true, true, false, false);
-            telnet.addOptionHandler(sizeOpt);
-
-            telnet.connect(ip, port);
-
-            inputStream = telnet.getInputStream();
-            outputStream = telnet.getOutputStream();
-            pStream = new PrintStream(telnet.getOutputStream());
-
-            StringBuilder line = new StringBuilder();
-            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            int b;
-            while ((b = in.read()) != -1) {
-                line.appendCodePoint(b);
-                if(line.toString().endsWith(Constants.CLI_PROMPT)) {
-                    println("connect {} {}", ip, port);
-                    return true;
-                }
-            }
-            return false;
-        } catch (Throwable e) {
-            close();
-            printErr("connect fail, visit {} for more details.", LogUtil.getLogDir());
-            LogUtil.warn(e);
-        }
-        return false;
-    }
-
-    public void close() {
-        if (telnet != null) {
-            try {
-                telnet.disconnect();
-            } catch (IOException ex) {
-                LogUtil.warn(ex);
-            }
-        }
+        return TelnetUtil.connect(ip, tcpPort, getTerminalWidth(), getTerminalHeight());
     }
 
     public void send(String command) {
-        try {
-            pStream.println(command);
-            pStream.flush();
-        } catch (Throwable e) {
-            printErr("send command fail, please confirm agent and connect success, visit {} for more details.", LogUtil.getLogDir());
-            LogUtil.warn(e);
-        }
+        TelnetUtil.send(command);
     }
 
     public String receive(String command) {
-        try {
-            StringBuilder line = new StringBuilder();
-            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            int b;
-            while ((b = in.read()) != -1) {
-                line.appendCodePoint(b);
-                if(line.toString().endsWith(Constants.CLI_PROMPT)) {
-                    break;
-                }
-            }
-            String response = line.toString();
-            if (StringUtil.isEmpty(response)) {
-                return null;
-            }
-            StringBuilder result = new StringBuilder();
-            String[] strings = response.split("\n");
-            // metric
-            // response data
-            if (strings.length > 1 && strings[0].contains(command)) {
-                for (int i = 1; i < strings.length -1; i++) {
-                    result.append(strings[i]);
-                }
-                return result.toString();
-            }
-        } catch (Throwable e) {
-            printErr("receive command fail, please confirm agent and connect success, visit {} for more details.", LogUtil.getLogDir());
-            LogUtil.warn(e);
-        }
-        return null;
+        return TelnetUtil.receive(command);
+    }
+
+    public void close() {
+        TelnetUtil.close();
     }
 
     public int getTerminalWidth() {
@@ -304,5 +255,78 @@ public class RootCommand implements Runnable {
 
     public void printErr(String from, Object... arguments) {
         err.println(LogUtil.format(from, arguments));
+    }
+
+    public static void updateApi(String currentApi) {
+        save(API, currentApi);
+    }
+
+    public static String currentApi() {
+        return query(API);
+    }
+
+    public String getPrompt() {
+        AttributedStringBuilder builder = new AttributedStringBuilder()
+                .style(AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
+                .append(Constants.CLI_PROMPT);
+        if (StringUtil.isNotEmpty(currentApi())) {
+            return builder.style(AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN))
+                    .append(currentApi())
+                    .append("> ")
+                    .toAnsi();
+        }
+        return builder.append(" ").toAnsi();
+    }
+
+    public String getRightPrompt() {
+        return null;
+    }
+
+    private void start() {
+        new ServerListener(httpPort).start();
+    }
+
+    public static void save(String key, String val) {
+        cached.put(key, val);
+    }
+
+    public static String query(String key) {
+        return cached.get(key);
+    }
+
+    public static String query(String key, String def) {
+        return cached.getOrDefault(key, def);
+    }
+
+    public static void updateCmd(String cmd) {
+        save(CMD, cmd);
+    }
+
+    public static String currentCmd() {
+        return query(CMD);
+    }
+
+    public static void updateAppPort(int port) {
+        save(PORT, String.valueOf(port));
+    }
+
+    public static int currentAppPort() {
+        return Integer.parseInt(query(PORT, APP_PORT));
+    }
+
+    public void openBrowser() {
+        CommonUtils.EXECUTOR.submit(() -> {
+            try {
+                // to avoid screen switches too fast for users to see command line prompts
+                Thread.sleep(1000);
+                Desktop desktop = Desktop.getDesktop();
+                if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.BROWSE)) {
+                    desktop.browse(new URI("http://localhost:" + httpPort));
+                }
+            } catch (Throwable e) {
+                printErr("open browser fail:{}, visit {} for more details.", e, LogUtil.getLogDir());
+                LogUtil.warn(e);
+            }
+        });
     }
 }

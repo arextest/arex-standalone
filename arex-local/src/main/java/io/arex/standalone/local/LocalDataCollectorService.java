@@ -2,7 +2,9 @@ package io.arex.standalone.local;
 
 import com.google.auto.service.AutoService;
 import io.arex.agent.bootstrap.model.ArexMocker;
+import io.arex.agent.bootstrap.model.MockStrategyEnum;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.config.ConfigManager;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.service.DataCollector;
@@ -28,21 +30,17 @@ public class LocalDataCollectorService implements DataCollector {
 
     @Override
     public void save(String json) {
-        if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LOGGER.info("[arex] local save mocker: {}", json);
-        }
         H2StorageService.INSTANCE.save(Serializer.deserialize(json, ArexMocker.class), json);
     }
 
     @Override
-    public String query(String json) {
+    public String query(String json, MockStrategyEnum mockStrategy) {
         Mocker mocker = Serializer.deserialize(json, ArexMocker.class);
+        if (mocker == null) {
+            return StringUtil.EMPTY;
+        }
         H2StorageService.INSTANCE.save(mocker, json);
         mocker.setReplayId(null);
-        String result = H2StorageService.INSTANCE.queryJson(mocker);
-        if (ConfigManager.INSTANCE.isEnableDebug()) {
-            LOGGER.info("[arex] local query mocker: {}", result);
-        }
-        return result;
+        return H2StorageService.INSTANCE.queryJson(mocker);
     }
 }

@@ -1,10 +1,9 @@
 package io.arex.standalone.local.storage;
 
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.util.IOUtils;
-import io.arex.standalone.common.DiffMocker;
-import org.apache.commons.lang3.StringUtils;
+import io.arex.standalone.common.util.StringUtil;
+import io.arex.standalone.local.model.DiffMocker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,18 +25,18 @@ public class H2SqlParser {
                     H2StorageService.class.getClassLoader().getResourceAsStream("db/h2/schema.txt"));
             String[] schemaArray = schemaSql.split("--");
             for (String schemas : schemaArray) {
-                if (StringUtils.isBlank(schemas)) {
+                if (StringUtil.isBlank(schemas)) {
                     continue;
                 }
                 String[] sqlArray = schemas.split("\n");
                 String tableName = "";
                 StringBuilder schema = new StringBuilder();
                 for (String sql : sqlArray) {
-                    if (StringUtils.isBlank(sql)) {
+                    if (StringUtil.isBlank(sql)) {
                         continue;
                     }
                     if (sql.startsWith("CREATE TABLE")) {
-                        tableName = StringUtils.substringBetween(sql, "EXISTS ", "(");
+                        tableName = StringUtil.substringBetween(sql, "EXISTS ", "(");
                     }
                     schema.append(sql);
                     if (sql.equals(");")) {
@@ -66,14 +65,17 @@ public class H2SqlParser {
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getCategoryType().getName())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getAppId())).append("',");
                     sqlBuilder.append("'").append(jsonData == null ? "" : URLEncoder.encode(jsonData, StandardCharsets.UTF_8.name())).append("',");
-                    sqlBuilder.append(mocker.getCreationTime());
+                    sqlBuilder.append(mocker.getCreationTime()).append(",");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getOperationName())).append("',");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getTargetRequest().getBody())).append("'");
                 } else if (entity instanceof DiffMocker) {
                     DiffMocker mocker = (DiffMocker)entity;
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getRecordId())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayId())).append("',");
-                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getCategoryType().getName())).append("',");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getCategoryType())).append("',");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getRecordDiff())).append("',");
-                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayDiff())).append("'");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getReplayDiff())).append("',");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getOperationName())).append("'");
                 }
                 sqlBuilder.append("),");
             }
@@ -86,15 +88,23 @@ public class H2SqlParser {
     public static String generateSelectSql(Mocker mocker, int count) {
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM MOCKER_INFO");
         sqlBuilder.append(" WHERE 1 = 1");
-        if (StringUtils.isNotBlank(mocker.getRecordId())) {
+        if (StringUtil.isNotBlank(mocker.getRecordId())) {
             sqlBuilder.append(" AND RECORDID = '").append(mocker.getRecordId()).append("'");
         }
-        if (StringUtils.isNotBlank(mocker.getReplayId())) {
+        if (StringUtil.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
         } else {
             sqlBuilder.append(" AND REPLAYID = ''");
         }
-        sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
+        if (mocker.getCategoryType() != null) {
+            sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
+        }
+        if (StringUtil.isNotBlank(mocker.getOperationName())) {
+            sqlBuilder.append(" AND OPERATIONNAME = '").append(mocker.getOperationName()).append("'");
+        }
+        if (mocker.getTargetRequest() != null && StringUtil.isNotBlank(mocker.getTargetRequest().getBody())) {
+            sqlBuilder.append(" AND REQUEST = '").append(mocker.getTargetRequest().getBody()).append("'");
+        }
         sqlBuilder.append(" ORDER BY CREATIONTIME DESC");
         if (count > 0) {
             sqlBuilder.append(" LIMIT ").append(count);
@@ -102,14 +112,54 @@ public class H2SqlParser {
         return sqlBuilder.toString();
     }
 
-    public static String generateSelectDiffSql(DiffMocker mocker) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM DIFF_RESULT ");
-        sqlBuilder.append(" WHERE CATEGORYTYPE = '").append(mocker.getCategoryType().getName()).append("'");
-        if (StringUtils.isNotBlank(mocker.getRecordId())) {
+    public static String generateSelectDiffSql(DiffMocker mocker, int count) {
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM DIFF_RESULT WHERE 1 = 1");
+        if (mocker.getCategoryType() != null) {
+            sqlBuilder.append(" AND CATEGORYTYPE = '").append(mocker.getCategoryType()).append("'");
+        }
+        if (StringUtil.isNotBlank(mocker.getRecordId())) {
             sqlBuilder.append(" AND RECORDID = '").append(mocker.getRecordId()).append("'");
         }
-        if (StringUtils.isNotBlank(mocker.getReplayId())) {
+        if (StringUtil.isNotBlank(mocker.getReplayId())) {
             sqlBuilder.append(" AND REPLAYID = '").append(mocker.getReplayId()).append("'");
+        }
+        if (count > 0) {
+            sqlBuilder.append(" LIMIT ").append(count);
+        }
+        return sqlBuilder.toString();
+    }
+
+    public static String queryApiRecordCount(Mocker mocker, int count) {
+        StringBuilder sqlBuilder = new StringBuilder("select rownum() as index, * from (");
+        sqlBuilder.append(" SELECT OPERATIONNAME, count(1) as NUM FROM MOCKER_INFO WHERE REPLAYID = ''");
+        if (StringUtil.isNotBlank(mocker.getAppId())) {
+            sqlBuilder.append(" AND APPID = '").append(mocker.getAppId()).append("'");
+        }
+        sqlBuilder.append(" AND CATEGORYTYPE = 'Servlet'");
+        sqlBuilder.append(" GROUP BY OPERATIONNAME");
+        sqlBuilder.append(" ORDER BY NUM DESC )");
+        if (count > 0) {
+            sqlBuilder.append(" LIMIT ").append(count);
+        }
+        return sqlBuilder.toString();
+    }
+
+    public static String queryApiRecordId(Mocker mocker, int count) {
+        StringBuilder sqlBuilder = new StringBuilder("select rownum() as index, * from (");
+        sqlBuilder.append(" select recordId, group_concat(distinct categoryType) as mockCategory ");
+        sqlBuilder.append(" from mocker_info where replayId = '' and recordId in (");
+        sqlBuilder.append(" select recordId from mocker_info where replayId = ''");
+        if (StringUtil.isNotBlank(mocker.getAppId())) {
+            sqlBuilder.append(" AND appId = '").append(mocker.getAppId()).append("'");
+        }
+        sqlBuilder.append(" and categoryType = 'Servlet' ");
+        if (StringUtil.isNotBlank(mocker.getOperationName())) {
+            sqlBuilder.append(" AND operationName = '").append(mocker.getOperationName()).append("'");
+        }
+        sqlBuilder.append(" ) and operationName != 'java.lang.System.currentTimeMillis'");
+        sqlBuilder.append(" group by recordId order by recordId desc)");
+        if (count > 0) {
+            sqlBuilder.append(" limit ").append(count);
         }
         return sqlBuilder.toString();
     }
