@@ -1,5 +1,6 @@
 package io.arex.standalone.cli.server.process;
 
+import io.arex.inst.runtime.util.TypeUtil;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.server.Request;
 import io.arex.standalone.common.constant.Constants;
@@ -8,7 +9,6 @@ import io.arex.standalone.common.model.LocalModel;
 import io.arex.standalone.common.util.CollectionUtil;
 import io.arex.standalone.common.util.SerializeUtils;
 import io.arex.standalone.common.util.StringUtil;
-import io.arex.standalone.common.util.TypeUtil;
 
 import java.util.ArrayList;
 import java.util.List;

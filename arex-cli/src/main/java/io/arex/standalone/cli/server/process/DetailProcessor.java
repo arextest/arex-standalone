@@ -1,5 +1,6 @@
 package io.arex.standalone.cli.server.process;
 
+import io.arex.inst.runtime.util.TypeUtil;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.server.Request;
 import io.arex.standalone.cli.util.TelnetUtil;

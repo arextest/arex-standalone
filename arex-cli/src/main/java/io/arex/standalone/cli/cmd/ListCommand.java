@@ -1,5 +1,6 @@
 package io.arex.standalone.cli.cmd;
 
+import io.arex.inst.runtime.util.TypeUtil;
 import io.arex.standalone.common.util.*;
 import io.arex.standalone.cli.util.LogUtil;
 import io.arex.standalone.common.constant.Constants;

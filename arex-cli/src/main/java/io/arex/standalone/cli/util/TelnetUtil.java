@@ -27,7 +27,6 @@ public class TelnetUtil {
             telnet.connect(ip, tcpPort);
 
             inputStream = telnet.getInputStream();
-            OutputStream outputStream = telnet.getOutputStream();
             pStream = new PrintStream(telnet.getOutputStream());
 
             StringBuilder line = new StringBuilder();

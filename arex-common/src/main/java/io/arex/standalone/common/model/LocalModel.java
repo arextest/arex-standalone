@@ -9,8 +9,6 @@ public class LocalModel {
     private String recordJson;
     private String replayJson;
     private String index;
-    public LocalModel() {
-    }
 
     public String getRecordId() {
         return recordId;
