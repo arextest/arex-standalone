@@ -7,7 +7,7 @@
     <groupId>io.arex.standalone</groupId>
     <artifactId>arex-standalone</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>${revision}</version>
     <modules>
         <module>arex-cli</module>
         <module>arex-local</module>
@@ -15,6 +15,7 @@
     </modules>
 
     <properties>
+        <revision>1.0.1</revision>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <arex.version>0.3.6</arex.version>
