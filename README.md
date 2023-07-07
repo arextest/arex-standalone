@@ -21,7 +21,9 @@ The project mainly includes two modules:
 ***1. download arex-standalone-all.zip***
 
 Download the `arex-standalone-all.zip` file from the **Assets** directory on the 
-[releases](https://github.com/arextest/arex-standalone/releases) page and decompress.
+[releases](https://github.com/arextest/arex-standalone/releases) page and decompress 
+**or** you can access [Gitee](https://gitee.com/arextest/arex-standalone/releases) images 
+and synchronize periodically.
 > Alternatively, download the source code locally and compile (`mvn clean install`), 
 > replacing the corresponding jar package in the arex-standalone-all folder
 
