@@ -25,7 +25,9 @@ Download the `arex-standalone-all.zip` file from the **Assets** directory on the
 **or** you can access [Gitee](https://gitee.com/arextest/arex-standalone/releases) images 
 and synchronize periodically.
 > Alternatively, download the source code locally and compile (`mvn clean install`), 
-> replacing the corresponding jar package in the arex-standalone-all folder
+> replacing the corresponding jar package in the arex-standalone-all folder,
+> The prerequisite is first to compile the agent project:[arex-agent-java](https://github.com/arextest/arex-agent-java) locally, 
+> execute command: `mvn clean install` (deploy it to your local Maven repository, as the standalone project will depend on it)
 
 ***2. execute script***
 
@@ -41,6 +43,18 @@ You can also directly open the command line/terminal to execute the following co
 
 ```other
 java -jar arex-cli.jar
+```
+
+**Note**  
+If your local project is started in the IDE, simply execute the script.  
+However, if the project is started through the cmd: `java -jar`, you need to add the `-javaagent` option before restarting.  
+The complete command is as follows:
+```other
+java -javaagent:/path/to/arex-agent-<version>.jar 
+-Darex.service.name=your-service-name 
+-Darex.storage.mode=local (constant value)
+-Darex.enable.debug=true (constant value)
+-jar your-application.jar
 ```
 
 ***3. choose pid***
