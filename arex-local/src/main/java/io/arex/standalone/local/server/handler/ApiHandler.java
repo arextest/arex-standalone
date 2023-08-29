@@ -2,21 +2,21 @@ package io.arex.standalone.local.server.handler;
 
 import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
-import io.arex.foundation.util.AsyncHttpClientUtil;
+import io.arex.foundation.model.HttpClientResponse;
+import io.arex.foundation.util.httpclient.AsyncHttpClientUtil;
 import io.arex.standalone.common.util.CommonUtils;
 import io.arex.standalone.common.constant.Constants;
 import io.arex.standalone.common.util.StringUtil;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public abstract class ApiHandler {
 
-    public Map<String, String> request(Mocker servletMocker, int port) {
+    public HttpClientResponse request(Mocker servletMocker, int port) {
         if (!servletMocker.getCategoryType().isEntryPoint()) {
-            return Collections.emptyMap();
+            return null;
         }
         Target target = servletMocker.getTargetRequest();
 
@@ -26,7 +26,7 @@ public abstract class ApiHandler {
 
         String request = StringUtil.isNotEmpty(target.getBody()) ? CommonUtils.decode(target.getBody()) : "";
         String url = "http://localhost:" + port + target.attributeAsString("RequestPath");
-        return AsyncHttpClientUtil.executeAsyncIncludeHeader(url, request, requestHeaders).join();
+        return AsyncHttpClientUtil.postAsyncWithJson(url, request, requestHeaders).join();
     }
 
     protected Map<String, String> parseArgs(String argument) {

@@ -1,5 +1,6 @@
 package io.arex.standalone.cli.cmd;
 
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import io.arex.standalone.common.util.*;
 import io.arex.standalone.cli.util.LogUtil;
@@ -71,7 +72,7 @@ public class ListCommand implements Runnable {
             return;
         }
 
-        List<LocalModel> resultList = SerializeUtils.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_LOCAL));
+        List<LocalModel> resultList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_LOCAL));
         if (CollectionUtil.isEmpty(resultList)) {
             return;
         }

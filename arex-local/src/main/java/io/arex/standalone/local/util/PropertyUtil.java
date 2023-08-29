@@ -1,7 +1,7 @@
 package io.arex.standalone.local.util;
 
 import io.arex.agent.bootstrap.InstrumentationHolder;
-import io.arex.inst.runtime.util.LogUtil;
+import io.arex.inst.runtime.log.LogManager;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class PropertyUtil {
                 props.load(inputStream);
                 PROPERTIES_LIST.add(props);
             } catch (Throwable e) {
-                LogUtil.warn("loadProperties:" + file, e);
+                LogManager.warn("loadProperties:" + file, e);
             }
         }
     }

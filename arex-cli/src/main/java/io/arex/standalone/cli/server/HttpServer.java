@@ -1,5 +1,6 @@
 package io.arex.standalone.cli.server;
 
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.server.process.AbstractProcessor;
 import io.arex.standalone.cli.server.process.DebugProcessor;
@@ -114,7 +115,7 @@ public class HttpServer {
 
     private static Request parseParam(String param) {
         if (param != null && param.contains("{") && param.contains("}")) {
-            return SerializeUtils.deserialize(param, Request.class);
+            return Serializer.deserialize(param, Request.class);
         }
         return null;
     }

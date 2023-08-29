@@ -7,6 +7,8 @@ import io.arex.agent.bootstrap.model.Mocker;
 import io.arex.agent.bootstrap.model.Mocker.Target;
 import io.arex.agent.bootstrap.util.CollectionUtil;
 import io.arex.agent.bootstrap.util.StringUtil;
+import io.arex.foundation.model.HttpClientResponse;
+import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.standalone.common.model.MockCategory;
 import io.arex.standalone.common.util.CommonUtils;
@@ -54,8 +56,11 @@ public class ReplayHandler extends ApiHandler {
         }
         List<Pair<String, String>> pairs = new ArrayList<>();
         for (Mocker mockerInfo : mockerList) {
-            Map<String, String> responseMap = request(mockerInfo, port);
-            pairs.add(Pair.of(mockerInfo.getRecordId(), responseMap.get("arex-replay-id")));
+            HttpClientResponse response = request(mockerInfo, port);
+            if (response == null || response.getHeaders() == null) {
+                continue;
+            }
+            pairs.add(Pair.of(mockerInfo.getRecordId(), response.getHeaders().get(ArexConstants.REPLAY_ID)));
         }
         return pairs;
     }
