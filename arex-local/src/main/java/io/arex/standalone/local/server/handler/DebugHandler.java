@@ -3,6 +3,7 @@ package io.arex.standalone.local.server.handler;
 import io.arex.agent.bootstrap.model.ArexMocker;
 import io.arex.agent.bootstrap.model.MockCategoryType;
 import io.arex.agent.bootstrap.model.Mocker;
+import io.arex.foundation.model.HttpClientResponse;
 import io.arex.standalone.local.storage.H2StorageService;
 
 import java.util.Map;
@@ -22,10 +23,10 @@ public class DebugHandler extends ApiHandler {
         if (resultMocker == null) {
             return "query no result.";
         }
-        Map<String, String> responseMap = request(resultMocker, port);
-        if (responseMap == null) {
+        HttpClientResponse response = request(resultMocker, port);
+        if (response == null) {
             return "response is null.";
         }
-        return responseMap.get("responseBody");
+        return response.getBody();
     }
 }

@@ -1,5 +1,6 @@
 package io.arex.standalone.cli.server.process;
 
+import io.arex.inst.runtime.serializer.Serializer;
 import io.arex.inst.runtime.util.TypeUtil;
 import io.arex.standalone.cli.cmd.RootCommand;
 import io.arex.standalone.cli.server.Request;
@@ -29,12 +30,12 @@ public class DetailProcessor extends AbstractProcessor {
         options.append("detail=").append(recordId).append(Constants.CLI_SEPARATOR);
         TelnetUtil.send("ls" + options);
         String response = TelnetUtil.receive("ls");
-        List<LocalModel> resultList = SerializeUtils.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_LOCAL));
+        List<LocalModel> resultList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_LOCAL));
         if (CollectionUtil.isEmpty(resultList)) {
             return fail("query detail is empty");
         }
         for (LocalModel localModel : resultList) {
-            Mocker mocker = SerializeUtils.deserialize(localModel.getRecordJson(), ArexMocker.class);
+            Mocker mocker = Serializer.deserialize(localModel.getRecordJson(), ArexMocker.class);
             if (mocker == null) {
                 continue;
             }
@@ -44,7 +45,7 @@ public class DetailProcessor extends AbstractProcessor {
             }
             localModel.setRecordJson(json);
         }
-        return SerializeUtils.serialize(resultList);
+        return Serializer.serialize(resultList);
     }
 
     private String watchDetail(Request request) {
@@ -59,7 +60,7 @@ public class DetailProcessor extends AbstractProcessor {
         if (StringUtil.isEmpty(response) || !response.contains("{")) {
             return fail("query detail is empty");
         }
-        List<DiffModel> diffList = SerializeUtils.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFF));
+        List<DiffModel> diffList = Serializer.deserialize(response, TypeUtil.forName(Constants.TYPE_LIST_DIFF));
         if (CollectionUtil.isEmpty(diffList)) {
             return fail("deserialize result is empty");
         }
@@ -77,7 +78,7 @@ public class DetailProcessor extends AbstractProcessor {
             replayList.add(localModel);
         }
 
-        return SerializeUtils.serialize(replayList);
+        return Serializer.serialize(replayList);
     }
 
     private void sortOperation(List<DiffModel> diffList) {
