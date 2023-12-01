@@ -1,7 +1,7 @@
 package io.arex.standalone.local.storage;
 
 import io.arex.agent.bootstrap.model.Mocker;
-import io.arex.foundation.util.IOUtils;
+import io.arex.standalone.common.util.IOUtils;
 import io.arex.standalone.common.util.StringUtil;
 import io.arex.standalone.local.model.DiffMocker;
 import org.slf4j.Logger;

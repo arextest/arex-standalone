@@ -29,9 +29,13 @@ public class LocalDataCollectorService implements DataCollector {
     }
 
     @Override
-    public void save(String json) {
-        H2StorageService.INSTANCE.save(Serializer.deserialize(json, ArexMocker.class), json);
+    public void save(Mocker mocker) {
+        String postJson = Serializer.serialize(mocker);
+        H2StorageService.INSTANCE.save(mocker, postJson);
     }
+
+    @Override
+    public void invalidCase(String s) {}
 
     @Override
     public String query(String json, MockStrategyEnum mockStrategy) {
