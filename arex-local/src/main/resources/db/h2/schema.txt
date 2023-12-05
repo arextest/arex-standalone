@@ -8,7 +8,8 @@ appId VARCHAR(100),
 jsonData VARCHAR,
 creationTime long,
 operationName VARCHAR(100),
-request VARCHAR
+request VARCHAR,
+entryPoint boolean
 );
 CREATE INDEX idx_recordId ON MOCKER_INFO (recordId);
 CREATE INDEX idx_replayId ON MOCKER_INFO (replayId);

@@ -137,6 +137,43 @@ such as: `replay -p 8081`
 
 Similarly, you can also click the `Debug` button to play back a single case.
 
+## Local Storage
+
+The locally recorded data is stored in the current user of the operating system:
+`~/arexdb.mv.db`, you can view and edit data by accessing 'http://localhost:8080/h2-console' in a browser.
+
+![dashboard](arex-local/src/main/resources/static/img/h2-console.png)
+
+JDBC URL: `jdbc:h2:tcp://localhost/~/arexdb`
+User Name: `arex`
+Password: `123`
+    
+### tips
+1. 'http://localhost:8080/h2-console' port 8080 is your local application port, based on the port number of your application.
+2. if your application is Spring Boot Web project need to add following config:  
+   `spring.h2.console.enabled=true`  
+   `spring.h2.console.path=/h2-console`  
+and add pom.xml h2 dependency:  
+```xml
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>2.1.210</version>
+    <scope>runtime</scope>
+</dependency>
+```
+if is JEE project need is to expose it using the WEB-INF/web.xml deployment descriptor:
+```xml
+<servlet>
+  <servlet-name>h2-console</servlet-name>
+  <servlet-class>org.h2.server.web.WebServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+  <servlet-name>h2-console</servlet-name>
+  <url-pattern>/h2-console/*</url-pattern>
+</servlet-mapping>
+```
+
 ## Note
 
 > For issues that are not on this list, please search for them in the 
@@ -149,8 +186,6 @@ Similarly, you can also click the `Debug` button to play back a single case.
    [https://github.com/JetBrains/intellij-community/pull/1528](https://github.com/JetBrains/intellij-community/pull/1528)
 2. If your JDK version is 1.8, ensure that **tools.jar** exists in your computer's `/jdk/lib/`, 
    agent startup needs to rely on this jar.
-3. The locally recorded data is stored in the current user of the operating system: 
-   `~/arexdb.mv.db`, you can delete the data in this directory to clear the local data(if you want).
 
 ## License
 - Code: [Apache-2.0](https://github.com/arextest/arex-agent-java/blob/main/LICENSE)
