@@ -27,7 +27,7 @@ and synchronize periodically.
 > Alternatively, download the source code locally and compile (`mvn clean install`), 
 > replacing the corresponding jar package in the arex-standalone-all folder,
 > The prerequisite is first to compile the agent project:[arex-agent-java](https://github.com/arextest/arex-agent-java) locally, 
-> execute command: `mvn clean install` (deploy it to your local Maven repository, as the standalone project will depend on it)
+> execute command: `mvn clean install -DskipTests` (deploy it to your local Maven repository, as the standalone project will depend on it)
 
 ***2. execute script***
 
@@ -153,7 +153,7 @@ Password: `123`
 2. if your application is Spring Boot Web project need to add following config:  
    `spring.h2.console.enabled=true`  
    `spring.h2.console.path=/h2-console`  
-and add pom.xml h2 dependency:  
+and add h2 dependency to pom.xml:  
 ```xml
 <dependency>
     <groupId>com.h2database</groupId>
