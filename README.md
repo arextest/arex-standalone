@@ -24,7 +24,7 @@ Download the `arex-standalone-all.zip` file from the **Assets** directory on the
 [releases](https://github.com/arextest/arex-standalone/releases/latest) page and decompress 
 **or** you can access [Gitee](https://gitee.com/arextest/arex-standalone/releases) images 
 and synchronize periodically.
-> Alternatively, download the source code locally and compile (`mvn clean install`), 
+> Alternatively, download the source code locally and compile (`mvn clean install -DskipTests`), 
 > replacing the corresponding jar package in the arex-standalone-all folder,
 > The prerequisite is first to compile the agent project:[arex-agent-java](https://github.com/arextest/arex-agent-java) locally, 
 > execute command: `mvn clean install -DskipTests` (deploy it to your local Maven repository, as the standalone project will depend on it)
