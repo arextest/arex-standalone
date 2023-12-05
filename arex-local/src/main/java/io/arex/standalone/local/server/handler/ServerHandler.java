@@ -35,10 +35,11 @@ public class ServerHandler {
                 conn.write("exit\n").close();
             } else {
                 String response;
+                String command = "";
                 try {
                     String[] lines = line.split(" ");
                     String args = "";
-                    String command = lines[0];
+                    command = lines[0];
                     if (lines.length > 1) {
                         args = lines[1];
                     }
@@ -50,7 +51,7 @@ public class ServerHandler {
                     }
                     response = response == null ? "" : URLEncoder.encode(response, StandardCharsets.UTF_8.name());
                 } catch (Throwable e) {
-                    LOGGER.warn("command execute error", e);
+                    LOGGER.warn("execute command: " + command + " fail", e);
                     response = e.getMessage();
                 }
                 conn.write(response + "\n");

@@ -10,7 +10,6 @@ import io.arex.agent.bootstrap.util.StringUtil;
 import io.arex.foundation.model.HttpClientResponse;
 import io.arex.inst.runtime.model.ArexConstants;
 import io.arex.inst.runtime.serializer.Serializer;
-import io.arex.standalone.common.model.MockCategory;
 import io.arex.standalone.common.util.CommonUtils;
 import io.arex.standalone.local.model.DiffMocker;
 import io.arex.standalone.local.util.DiffUtils;
@@ -55,13 +54,19 @@ public class ReplayHandler extends ApiHandler {
             return null;
         }
         List<Pair<String, String>> pairs = new ArrayList<>();
-        for (Mocker mockerInfo : mockerList) {
-            HttpClientResponse response = request(mockerInfo, port);
-            if (response == null || response.getHeaders() == null) {
-                continue;
+        try {
+            for (Mocker mockerInfo : mockerList) {
+                HttpClientResponse response = request(mockerInfo, port);
+                if (response == null || response.getHeaders() == null) {
+                    continue;
+                }
+                pairs.add(Pair.of(mockerInfo.getRecordId(), response.getHeaders().get(ArexConstants.REPLAY_ID)));
             }
-            pairs.add(Pair.of(mockerInfo.getRecordId(), response.getHeaders().get(ArexConstants.REPLAY_ID)));
+        } catch (Exception e) {
+            LOGGER.warn("replay fail, please check if the port of the target application is {}. " +
+                    "if not, you can specify the port through the `-p` parameter", port);
         }
+
         return pairs;
     }
 
@@ -124,12 +129,21 @@ public class ReplayHandler extends ApiHandler {
 
     private String getApi(List<DiffMocker> diffList) {
         for (DiffMocker diffMocker : diffList) {
-            MockCategory category = MockCategory.getByName(diffMocker.getCategoryType());
-            if (category.isEntryPoint()) {
+            MockCategoryType category = getCategoryType(diffMocker.getCategoryType());
+            if (category != null && category.isEntryPoint()) {
                 return diffMocker.getOperationName();
             }
         }
         return "";
+    }
+
+    private MockCategoryType getCategoryType(String category) {
+        for (MockCategoryType categoryType : MockCategoryType.values()) {
+            if (categoryType.getName().equals(category)) {
+                return categoryType;
+            }
+        }
+        return null;
     }
 
     private Mocker generateMocker(MockCategoryType category) {
@@ -148,20 +162,26 @@ public class ReplayHandler extends ApiHandler {
             if (mocker.getCategoryType().isEntryPoint()) {
                 builder.append("\"response\":").append(mocker.getTargetResponse().getBody());
             }
-            if (MockCategoryType.DATABASE.getName().equals(mocker.getCategoryType().getName())) {
-//                builder.append("dbname:").append(targetRequest.attributeAsString("dbName")).append(",");
-                builder.append("\"parameters\":").append(targetRequest.attributeAsString("parameters")).append(",");
-                builder.append("\"sql\":\"").append(targetRequest.getBody()).append("\"");
+
+            switch (mocker.getCategoryType().getName()) {
+                case "Database":
+                    builder.append("\"parameters\":").append(targetRequest.attributeAsString("parameters")).append(",");
+                    builder.append("\"sql\":\"").append(targetRequest.getBody()).append("\"");
+                    break;
+                case "HttpClient":
+                case "DubboConsumer":
+                    builder.append("\"operation\":\"").append(mocker.getOperationName()).append("\",");
+                    builder.append("\"request\":\"").append(CommonUtils.decode(targetRequest.getBody())).append("\"");
+                    break;
+                case "Redis":
+                    builder.append("\"operation\":\"").append(mocker.getOperationName()).append("\",");
+                    builder.append("\"clusterName\":\"").append(targetRequest.attributeAsString("clusterName")).append("\",");
+                    builder.append("\"key\":").append(targetRequest.getBody());
+                    break;
+                default:
+                    break;
             }
-            if (MockCategoryType.HTTP_CLIENT.getName().equals(mocker.getCategoryType().getName())) {
-                builder.append("\"operation\":\"").append(mocker.getOperationName()).append("\",");
-                builder.append("\"request\":\"").append(CommonUtils.decode(targetRequest.getBody())).append("\"");
-            }
-            if (MockCategoryType.REDIS.getName().equals(mocker.getCategoryType().getName())) {
-                builder.append("\"operation\":\"").append(mocker.getOperationName()).append("\",");
-                builder.append("\"clusterName\":\"").append(targetRequest.attributeAsString("clusterName")).append("\",");
-                builder.append("\"key\":").append(targetRequest.getBody());
-            }
+
             builder.append("}");
             return builder.toString();
         }

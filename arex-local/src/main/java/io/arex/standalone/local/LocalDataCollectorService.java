@@ -30,6 +30,9 @@ public class LocalDataCollectorService implements DataCollector {
 
     @Override
     public void save(Mocker mocker) {
+        if (mocker.getOperationName().contains("h2-console")) {
+            return; // h2 database console not need record
+        }
         String postJson = Serializer.serialize(mocker);
         H2StorageService.INSTANCE.save(mocker, postJson);
     }

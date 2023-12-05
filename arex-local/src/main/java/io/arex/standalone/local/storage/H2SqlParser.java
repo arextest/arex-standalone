@@ -67,7 +67,8 @@ public class H2SqlParser {
                     sqlBuilder.append("'").append(jsonData == null ? "" : URLEncoder.encode(jsonData, StandardCharsets.UTF_8.name())).append("',");
                     sqlBuilder.append(mocker.getCreationTime()).append(",");
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getOperationName())).append("',");
-                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getTargetRequest().getBody())).append("'");
+                    sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getTargetRequest().getBody())).append("',");
+                    sqlBuilder.append("'").append(mocker.getCategoryType().isEntryPoint()).append("'");
                 } else if (entity instanceof DiffMocker) {
                     DiffMocker mocker = (DiffMocker)entity;
                     sqlBuilder.append("'").append(StringUtil.defaultString(mocker.getRecordId())).append("',");
@@ -135,7 +136,7 @@ public class H2SqlParser {
         if (StringUtil.isNotBlank(mocker.getAppId())) {
             sqlBuilder.append(" AND APPID = '").append(mocker.getAppId()).append("'");
         }
-        sqlBuilder.append(" AND CATEGORYTYPE = 'Servlet'");
+        sqlBuilder.append(" AND ENTRYPOINT = true");
         sqlBuilder.append(" GROUP BY OPERATIONNAME");
         sqlBuilder.append(" ORDER BY NUM DESC )");
         if (count > 0) {
@@ -152,7 +153,7 @@ public class H2SqlParser {
         if (StringUtil.isNotBlank(mocker.getAppId())) {
             sqlBuilder.append(" AND appId = '").append(mocker.getAppId()).append("'");
         }
-        sqlBuilder.append(" and categoryType = 'Servlet' ");
+        sqlBuilder.append(" AND ENTRYPOINT = true ");
         if (StringUtil.isNotBlank(mocker.getOperationName())) {
             sqlBuilder.append(" AND operationName = '").append(mocker.getOperationName()).append("'");
         }
